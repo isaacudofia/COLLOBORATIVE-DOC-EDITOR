@@ -1,0 +1,36 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(uuid()) // Unique identifier for the user, uses UUID
+  email     String     @unique //User's email, must be unique
+  password  String //Hashed password
+  name      String? //Optional name
+  createdAt DateTime   @default(now()) //Timestamp for when the user was created
+  updatedAt DateTime   @updatedAt //Timestamp for the last update
+  //Add relation for Documents later (will be done in Day 4)
+  documents Document[] // A user can own multiple documents (one-to-many relation)
+}
+
+model Document {
+  id        String   @id @default(uuid())
+  title     String
+  content   String   @default("")
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
