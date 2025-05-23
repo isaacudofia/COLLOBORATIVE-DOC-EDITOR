@@ -5,3 +5,5 @@ const errorHandler = async (error, req, res, next) => {
       error: error.message,
     });
 };
+
+export default errorHandler;
