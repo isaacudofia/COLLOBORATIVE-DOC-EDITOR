@@ -33,4 +33,7 @@ model Document {
   owner User @relation(fields: [ownerId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Optional: Add a shared property if you plan for public/private documents later
+  // isPublic  Boolean  @default(false)
 }
