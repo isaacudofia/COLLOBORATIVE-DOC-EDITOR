@@ -28,7 +28,7 @@ model User {
 model Document {
   id String @id @default(uuid())
   title String
-  content String @default("")
+  content String @default("") // Document content, default to empty string
   ownerId String
   owner User @relation(fields: [ownerId], references: [id])
   createdAt DateTime @default(now())
