@@ -9,7 +9,7 @@ export const getAllDocuments = async (req, res) => {
       orderBy: { updatedAt: "desc" }, // Order by most recently updated (descendind order)
     });
 
-    if (!documents)
+    if (!documents || documents.length === 0)
       return res
         .status(404)
         .json({ message: "No document created by user..." });
@@ -42,7 +42,7 @@ export const getDocument = async (req, res) => {
 
     // Authorization check: Only the owner can access their document for now
     // (We'll expand on this for collaborators on Day 5)
-    if (findDocument.id !== req.user.userID)
+    if (findDocument.ownerId !== req.user.userID)
       return res
         .status(404)
         .json({ message: "Access Denied: You do not own this document." });
@@ -149,8 +149,8 @@ export const deleteDocument = async (req, res) => {
     const deletedDocument = await prisma.document.delete({ where: { id } });
     res.status(204).json({
       message: "Deleted document successfully",
-      data: deletedDocument,
-    });
+      deleted: deletedDocument,
+    }); // 204 No Content for successful deletion. So no content will show
   } catch (error) {
     res.status(500).json({
       message: "Error occured while deleting document",

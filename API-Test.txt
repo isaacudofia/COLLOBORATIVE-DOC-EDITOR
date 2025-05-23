@@ -1,0 +1,117 @@
+//LOGIN OUTPUT
+{"data": {
+    "id": "f7a8c30f-6de3-4f40-8c1f-93505fc9a607",
+    "email": "isaacudofia0@gmail.com",
+    "name": null,
+    "createdAt": "2025-05-23T10:09:08.065Z",
+    "updatedAt": "2025-05-23T10:09:08.065Z"
+  }
+}
+
+//CREATED DOCUMENT OUTPUT
+//userloginID = f7a8c30f-6de3-4f40-8c1f-93505fc9a607
+//ENDPOINT(METHOD=>POST):=> http://localhost:4000/api/document/userloginID
+{
+  "message": "Created document successfully",
+  "data": {
+    "id": "4406a309-7255-4d28-a971-7d92fe130cd8",
+    "title": "My First Collaborative Doc",
+    "content": "This is some initial content for my document.",
+    "ownerId": "f7a8c30f-6de3-4f40-8c1f-93505fc9a607",
+    "createdAt": "2025-05-23T13:47:05.792Z",
+    "updatedAt": "2025-05-23T13:47:05.792Z"
+  }
+}
+
+//GET SPECIFIC DOCUMENT OUTPUT
+//documentCreatedID or documentID = 4406a309-7255-4d28-a971-7d92fe130cd8
+//ENDPOINT(METHOD=>GET):=> http://localhost:4000/api/document/{documentID}
+
+{
+  "message": "Updated document successfully",
+  "data": {
+    "id": "4406a309-7255-4d28-a971-7d92fe130cd8",
+    "title": "My First Collaborative Doc",
+    "content": "This is some initial content for my document.",
+    "ownerId": "f7a8c30f-6de3-4f40-8c1f-93505fc9a607",
+    "createdAt": "2025-05-23T13:47:05.792Z",
+    "updatedAt": "2025-05-23T13:47:05.792Z",
+    "owner": {
+      "id": "f7a8c30f-6de3-4f40-8c1f-93505fc9a607",
+      "name": null,
+      "email": "isaacudofia0@gmail.com"
+    }
+  }
+}
+
+//UPDATE SPECIFIC DOCUMENT OUTPUT
+//documentCreatedID or documentID = 4406a309-7255-4d28-a971-7d92fe130cd8
+//ENDPOINT(METHOD=>PUT):=> http://localhost:4000/api/document/{documentID}
+
+{
+  "message": "Updated document successfully",
+  "data": {
+    "id": "31d585cf-9995-483d-b36c-160cf3f6b4e9",
+    "title": "My First Collaborative Doc Updated",
+    "content": "This is some initial content for my document. --updatedDocument",
+    "ownerId": "f7a8c30f-6de3-4f40-8c1f-93505fc9a607",
+    "createdAt": "2025-05-23T14:10:36.968Z",
+    "updatedAt": "2025-05-23T14:11:07.605Z"
+  }
+}
+
+//DELETE SPECIFIC DOCUMENT OUTPUT
+//documentCreatedID or documentID = 4406a309-7255-4d28-a971-7d92fe130cd8
+//ENDPOINT(METHOD=>PUT):=> http://localhost:4000/api/document/{documentID}
+
+//204 No Content for successful deletion. So no content will show
+
+
+//GET ALL DOCUMENTS OUTPUT
+//
+//ENDPOINT(METHOD=>GET):=> http://localhost:4000/api/documents
+{
+  "message": "Get all documents successfully owned by the current user",
+  "data": [
+    {
+      "id": "158c73c9-b7c4-43ef-b1e9-3d4124bd495c",
+      "title": "My First Collaborative Doc Updated",
+      "content": "This is some initial content for my document. --Updated document",
+      "ownerId": "f7a8c30f-6de3-4f40-8c1f-93505fc9a607",
+      "createdAt": "2025-05-23T14:09:33.577Z",
+      "updatedAt": "2025-05-23T14:09:33.577Z"
+    },
+    {
+      "id": "930c545f-4b68-4528-a495-5ae5ff57649e",
+      "title": "My First Collaborative Doc Updated",
+      "content": "This is some initial content for my document.",
+      "ownerId": "f7a8c30f-6de3-4f40-8c1f-93505fc9a607",
+      "createdAt": "2025-05-23T13:39:05.432Z",
+      "updatedAt": "2025-05-23T13:39:05.432Z"
+    },
+    {
+      "id": "dc6a121b-532e-4f33-b823-fe8cfa3b2e29",
+      "title": "My First Collaborative Doc Updated",
+      "content": "This is some initial content for my document.",
+      "ownerId": "f7a8c30f-6de3-4f40-8c1f-93505fc9a607",
+      "createdAt": "2025-05-23T13:18:08.670Z",
+      "updatedAt": "2025-05-23T13:18:08.670Z"
+    },
+    {
+      "id": "b5cf2e7a-f64e-4fa7-abd2-533556fb8375",
+      "title": "My First Collaborative Doc",
+      "content": "This is some initial content for my document.",
+      "ownerId": "f7a8c30f-6de3-4f40-8c1f-93505fc9a607",
+      "createdAt": "2025-05-23T13:15:37.789Z",
+      "updatedAt": "2025-05-23T13:15:37.789Z"
+    },
+    {
+      "id": "ec4674f3-f354-4d19-962a-6a8d12b8ab49",
+      "title": "My First Collaborative Doc",
+      "content": "This is some initial content for my document.",
+      "ownerId": "f7a8c30f-6de3-4f40-8c1f-93505fc9a607",
+      "createdAt": "2025-05-23T13:15:24.351Z",
+      "updatedAt": "2025-05-23T13:15:24.351Z"
+    }
+  ]
+}
