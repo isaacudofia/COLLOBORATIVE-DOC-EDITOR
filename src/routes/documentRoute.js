@@ -1,6 +1,6 @@
 //DOCUMENT ROUTES
 import express from "express";
-import authMiddleware from "../middlewares/protected";
+import authMiddleware from "../middlewares/protected.js";
 import {
   deleteDocument,
   getAllDocuments,
