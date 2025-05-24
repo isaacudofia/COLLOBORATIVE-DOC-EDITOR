@@ -23,6 +23,7 @@ model User {
   updatedAt DateTime @updatedAt //Timestamp for the last update
   //Add relation for Documents later (will be done in Day 4)
   documents Document[] // A user can own multiple documents (one-to-many relation)
+  collaborations Collaboration[] // Documents this user is collaborating on
 }
 
 model Document {
@@ -33,7 +34,30 @@ model Document {
   owner User @relation(fields: [ownerId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  collaborators Collaboration[] // Collaborators on this document
 
   // Optional: Add a shared property if you plan for public/private documents later
   // isPublic  Boolean  @default(false)
+}
+
+// New Collaboration (Junction) Model
+model Collaboration {
+  id          String   @id @default(uuid()) // Unique ID for each collaboration entry
+  userId      String   // Foreign key to User
+  documentId  String   // Foreign key to Document
+  role        Role     @default(EDITOR) // Role of the collaborator
+
+  user        User     @relation(fields: [userId], references: [id])
+  document    Document @relation(fields: [documentId], references: [id])
+
+  @@unique([userId, documentId]) // A user can only have one role per document
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// New Enum for Roles
+enum Role {
+  OWNER
+  EDITOR
+  VIEWER
 }

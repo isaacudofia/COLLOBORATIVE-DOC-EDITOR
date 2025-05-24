@@ -23,6 +23,29 @@ export type User = $Result.DefaultSelection<Prisma.$UserPayload>
  * 
  */
 export type Document = $Result.DefaultSelection<Prisma.$DocumentPayload>
+/**
+ * Model Collaboration
+ * 
+ */
+export type Collaboration = $Result.DefaultSelection<Prisma.$CollaborationPayload>
+
+/**
+ * Enums
+ */
+export namespace $Enums {
+  export const Role: {
+  OWNER: 'OWNER',
+  EDITOR: 'EDITOR',
+  VIEWER: 'VIEWER'
+};
+
+export type Role = (typeof Role)[keyof typeof Role]
+
+}
+
+export type Role = $Enums.Role
+
+export const Role: typeof $Enums.Role
 
 /**
  * ##  Prisma Client ʲˢ
@@ -168,6 +191,16 @@ export class PrismaClient<
     * ```
     */
   get document(): Prisma.DocumentDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.collaboration`: Exposes CRUD operations for the **Collaboration** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Collaborations
+    * const collaborations = await prisma.collaboration.findMany()
+    * ```
+    */
+  get collaboration(): Prisma.CollaborationDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -609,7 +642,8 @@ export namespace Prisma {
 
   export const ModelName: {
     User: 'User',
-    Document: 'Document'
+    Document: 'Document',
+    Collaboration: 'Collaboration'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -628,7 +662,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "document"
+      modelProps: "user" | "document" | "collaboration"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -780,6 +814,80 @@ export namespace Prisma {
           }
         }
       }
+      Collaboration: {
+        payload: Prisma.$CollaborationPayload<ExtArgs>
+        fields: Prisma.CollaborationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CollaborationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CollaborationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CollaborationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CollaborationPayload>
+          }
+          findFirst: {
+            args: Prisma.CollaborationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CollaborationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CollaborationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CollaborationPayload>
+          }
+          findMany: {
+            args: Prisma.CollaborationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CollaborationPayload>[]
+          }
+          create: {
+            args: Prisma.CollaborationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CollaborationPayload>
+          }
+          createMany: {
+            args: Prisma.CollaborationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CollaborationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CollaborationPayload>[]
+          }
+          delete: {
+            args: Prisma.CollaborationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CollaborationPayload>
+          }
+          update: {
+            args: Prisma.CollaborationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CollaborationPayload>
+          }
+          deleteMany: {
+            args: Prisma.CollaborationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CollaborationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CollaborationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CollaborationPayload>[]
+          }
+          upsert: {
+            args: Prisma.CollaborationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CollaborationPayload>
+          }
+          aggregate: {
+            args: Prisma.CollaborationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCollaboration>
+          }
+          groupBy: {
+            args: Prisma.CollaborationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CollaborationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CollaborationCountArgs<ExtArgs>
+            result: $Utils.Optional<CollaborationCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -866,6 +974,7 @@ export namespace Prisma {
   export type GlobalOmitConfig = {
     user?: UserOmit
     document?: DocumentOmit
+    collaboration?: CollaborationOmit
   }
 
   /* Types for Logging */
@@ -961,10 +1070,12 @@ export namespace Prisma {
 
   export type UserCountOutputType = {
     documents: number
+    collaborations: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     documents?: boolean | UserCountOutputTypeCountDocumentsArgs
+    collaborations?: boolean | UserCountOutputTypeCountCollaborationsArgs
   }
 
   // Custom InputTypes
@@ -983,6 +1094,44 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountDocumentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: DocumentWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountCollaborationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CollaborationWhereInput
+  }
+
+
+  /**
+   * Count Type DocumentCountOutputType
+   */
+
+  export type DocumentCountOutputType = {
+    collaborators: number
+  }
+
+  export type DocumentCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    collaborators?: boolean | DocumentCountOutputTypeCountCollaboratorsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * DocumentCountOutputType without action
+   */
+  export type DocumentCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DocumentCountOutputType
+     */
+    select?: DocumentCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * DocumentCountOutputType without action
+   */
+  export type DocumentCountOutputTypeCountCollaboratorsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CollaborationWhereInput
   }
 
 
@@ -1163,6 +1312,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     documents?: boolean | User$documentsArgs<ExtArgs>
+    collaborations?: boolean | User$collaborationsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -1196,6 +1346,7 @@ export namespace Prisma {
   export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "name" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     documents?: boolean | User$documentsArgs<ExtArgs>
+    collaborations?: boolean | User$collaborationsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -1205,6 +1356,7 @@ export namespace Prisma {
     name: "User"
     objects: {
       documents: Prisma.$DocumentPayload<ExtArgs>[]
+      collaborations: Prisma.$CollaborationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -1608,6 +1760,7 @@ export namespace Prisma {
   export interface Prisma__UserClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     documents<T extends User$documentsArgs<ExtArgs> = {}>(args?: Subset<T, User$documentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    collaborations<T extends User$collaborationsArgs<ExtArgs> = {}>(args?: Subset<T, User$collaborationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CollaborationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2055,6 +2208,30 @@ export namespace Prisma {
   }
 
   /**
+   * User.collaborations
+   */
+  export type User$collaborationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Collaboration
+     */
+    select?: CollaborationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Collaboration
+     */
+    omit?: CollaborationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CollaborationInclude<ExtArgs> | null
+    where?: CollaborationWhereInput
+    orderBy?: CollaborationOrderByWithRelationInput | CollaborationOrderByWithRelationInput[]
+    cursor?: CollaborationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CollaborationScalarFieldEnum | CollaborationScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2246,6 +2423,8 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     owner?: boolean | UserDefaultArgs<ExtArgs>
+    collaborators?: boolean | Document$collaboratorsArgs<ExtArgs>
+    _count?: boolean | DocumentCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["document"]>
 
   export type DocumentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -2280,6 +2459,8 @@ export namespace Prisma {
   export type DocumentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "content" | "ownerId" | "createdAt" | "updatedAt", ExtArgs["result"]["document"]>
   export type DocumentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     owner?: boolean | UserDefaultArgs<ExtArgs>
+    collaborators?: boolean | Document$collaboratorsArgs<ExtArgs>
+    _count?: boolean | DocumentCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type DocumentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     owner?: boolean | UserDefaultArgs<ExtArgs>
@@ -2292,6 +2473,7 @@ export namespace Prisma {
     name: "Document"
     objects: {
       owner: Prisma.$UserPayload<ExtArgs>
+      collaborators: Prisma.$CollaborationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2695,6 +2877,7 @@ export namespace Prisma {
   export interface Prisma__DocumentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     owner<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    collaborators<T extends Document$collaboratorsArgs<ExtArgs> = {}>(args?: Subset<T, Document$collaboratorsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CollaborationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3126,6 +3309,30 @@ export namespace Prisma {
   }
 
   /**
+   * Document.collaborators
+   */
+  export type Document$collaboratorsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Collaboration
+     */
+    select?: CollaborationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Collaboration
+     */
+    omit?: CollaborationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CollaborationInclude<ExtArgs> | null
+    where?: CollaborationWhereInput
+    orderBy?: CollaborationOrderByWithRelationInput | CollaborationOrderByWithRelationInput[]
+    cursor?: CollaborationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CollaborationScalarFieldEnum | CollaborationScalarFieldEnum[]
+  }
+
+  /**
    * Document without action
    */
   export type DocumentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3141,6 +3348,1085 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: DocumentInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Collaboration
+   */
+
+  export type AggregateCollaboration = {
+    _count: CollaborationCountAggregateOutputType | null
+    _min: CollaborationMinAggregateOutputType | null
+    _max: CollaborationMaxAggregateOutputType | null
+  }
+
+  export type CollaborationMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    documentId: string | null
+    role: $Enums.Role | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CollaborationMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    documentId: string | null
+    role: $Enums.Role | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CollaborationCountAggregateOutputType = {
+    id: number
+    userId: number
+    documentId: number
+    role: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CollaborationMinAggregateInputType = {
+    id?: true
+    userId?: true
+    documentId?: true
+    role?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CollaborationMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    documentId?: true
+    role?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CollaborationCountAggregateInputType = {
+    id?: true
+    userId?: true
+    documentId?: true
+    role?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CollaborationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Collaboration to aggregate.
+     */
+    where?: CollaborationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Collaborations to fetch.
+     */
+    orderBy?: CollaborationOrderByWithRelationInput | CollaborationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CollaborationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Collaborations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Collaborations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Collaborations
+    **/
+    _count?: true | CollaborationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CollaborationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CollaborationMaxAggregateInputType
+  }
+
+  export type GetCollaborationAggregateType<T extends CollaborationAggregateArgs> = {
+        [P in keyof T & keyof AggregateCollaboration]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCollaboration[P]>
+      : GetScalarType<T[P], AggregateCollaboration[P]>
+  }
+
+
+
+
+  export type CollaborationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CollaborationWhereInput
+    orderBy?: CollaborationOrderByWithAggregationInput | CollaborationOrderByWithAggregationInput[]
+    by: CollaborationScalarFieldEnum[] | CollaborationScalarFieldEnum
+    having?: CollaborationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CollaborationCountAggregateInputType | true
+    _min?: CollaborationMinAggregateInputType
+    _max?: CollaborationMaxAggregateInputType
+  }
+
+  export type CollaborationGroupByOutputType = {
+    id: string
+    userId: string
+    documentId: string
+    role: $Enums.Role
+    createdAt: Date
+    updatedAt: Date
+    _count: CollaborationCountAggregateOutputType | null
+    _min: CollaborationMinAggregateOutputType | null
+    _max: CollaborationMaxAggregateOutputType | null
+  }
+
+  type GetCollaborationGroupByPayload<T extends CollaborationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CollaborationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CollaborationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CollaborationGroupByOutputType[P]>
+            : GetScalarType<T[P], CollaborationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CollaborationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    documentId?: boolean
+    role?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    document?: boolean | DocumentDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["collaboration"]>
+
+  export type CollaborationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    documentId?: boolean
+    role?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    document?: boolean | DocumentDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["collaboration"]>
+
+  export type CollaborationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    documentId?: boolean
+    role?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    document?: boolean | DocumentDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["collaboration"]>
+
+  export type CollaborationSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    documentId?: boolean
+    role?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CollaborationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "documentId" | "role" | "createdAt" | "updatedAt", ExtArgs["result"]["collaboration"]>
+  export type CollaborationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    document?: boolean | DocumentDefaultArgs<ExtArgs>
+  }
+  export type CollaborationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    document?: boolean | DocumentDefaultArgs<ExtArgs>
+  }
+  export type CollaborationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    document?: boolean | DocumentDefaultArgs<ExtArgs>
+  }
+
+  export type $CollaborationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Collaboration"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      document: Prisma.$DocumentPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      documentId: string
+      role: $Enums.Role
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["collaboration"]>
+    composites: {}
+  }
+
+  type CollaborationGetPayload<S extends boolean | null | undefined | CollaborationDefaultArgs> = $Result.GetResult<Prisma.$CollaborationPayload, S>
+
+  type CollaborationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CollaborationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CollaborationCountAggregateInputType | true
+    }
+
+  export interface CollaborationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Collaboration'], meta: { name: 'Collaboration' } }
+    /**
+     * Find zero or one Collaboration that matches the filter.
+     * @param {CollaborationFindUniqueArgs} args - Arguments to find a Collaboration
+     * @example
+     * // Get one Collaboration
+     * const collaboration = await prisma.collaboration.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CollaborationFindUniqueArgs>(args: SelectSubset<T, CollaborationFindUniqueArgs<ExtArgs>>): Prisma__CollaborationClient<$Result.GetResult<Prisma.$CollaborationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Collaboration that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CollaborationFindUniqueOrThrowArgs} args - Arguments to find a Collaboration
+     * @example
+     * // Get one Collaboration
+     * const collaboration = await prisma.collaboration.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CollaborationFindUniqueOrThrowArgs>(args: SelectSubset<T, CollaborationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CollaborationClient<$Result.GetResult<Prisma.$CollaborationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Collaboration that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CollaborationFindFirstArgs} args - Arguments to find a Collaboration
+     * @example
+     * // Get one Collaboration
+     * const collaboration = await prisma.collaboration.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CollaborationFindFirstArgs>(args?: SelectSubset<T, CollaborationFindFirstArgs<ExtArgs>>): Prisma__CollaborationClient<$Result.GetResult<Prisma.$CollaborationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Collaboration that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CollaborationFindFirstOrThrowArgs} args - Arguments to find a Collaboration
+     * @example
+     * // Get one Collaboration
+     * const collaboration = await prisma.collaboration.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CollaborationFindFirstOrThrowArgs>(args?: SelectSubset<T, CollaborationFindFirstOrThrowArgs<ExtArgs>>): Prisma__CollaborationClient<$Result.GetResult<Prisma.$CollaborationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Collaborations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CollaborationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Collaborations
+     * const collaborations = await prisma.collaboration.findMany()
+     * 
+     * // Get first 10 Collaborations
+     * const collaborations = await prisma.collaboration.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const collaborationWithIdOnly = await prisma.collaboration.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CollaborationFindManyArgs>(args?: SelectSubset<T, CollaborationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CollaborationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Collaboration.
+     * @param {CollaborationCreateArgs} args - Arguments to create a Collaboration.
+     * @example
+     * // Create one Collaboration
+     * const Collaboration = await prisma.collaboration.create({
+     *   data: {
+     *     // ... data to create a Collaboration
+     *   }
+     * })
+     * 
+     */
+    create<T extends CollaborationCreateArgs>(args: SelectSubset<T, CollaborationCreateArgs<ExtArgs>>): Prisma__CollaborationClient<$Result.GetResult<Prisma.$CollaborationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Collaborations.
+     * @param {CollaborationCreateManyArgs} args - Arguments to create many Collaborations.
+     * @example
+     * // Create many Collaborations
+     * const collaboration = await prisma.collaboration.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CollaborationCreateManyArgs>(args?: SelectSubset<T, CollaborationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Collaborations and returns the data saved in the database.
+     * @param {CollaborationCreateManyAndReturnArgs} args - Arguments to create many Collaborations.
+     * @example
+     * // Create many Collaborations
+     * const collaboration = await prisma.collaboration.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Collaborations and only return the `id`
+     * const collaborationWithIdOnly = await prisma.collaboration.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CollaborationCreateManyAndReturnArgs>(args?: SelectSubset<T, CollaborationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CollaborationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Collaboration.
+     * @param {CollaborationDeleteArgs} args - Arguments to delete one Collaboration.
+     * @example
+     * // Delete one Collaboration
+     * const Collaboration = await prisma.collaboration.delete({
+     *   where: {
+     *     // ... filter to delete one Collaboration
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CollaborationDeleteArgs>(args: SelectSubset<T, CollaborationDeleteArgs<ExtArgs>>): Prisma__CollaborationClient<$Result.GetResult<Prisma.$CollaborationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Collaboration.
+     * @param {CollaborationUpdateArgs} args - Arguments to update one Collaboration.
+     * @example
+     * // Update one Collaboration
+     * const collaboration = await prisma.collaboration.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CollaborationUpdateArgs>(args: SelectSubset<T, CollaborationUpdateArgs<ExtArgs>>): Prisma__CollaborationClient<$Result.GetResult<Prisma.$CollaborationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Collaborations.
+     * @param {CollaborationDeleteManyArgs} args - Arguments to filter Collaborations to delete.
+     * @example
+     * // Delete a few Collaborations
+     * const { count } = await prisma.collaboration.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CollaborationDeleteManyArgs>(args?: SelectSubset<T, CollaborationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Collaborations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CollaborationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Collaborations
+     * const collaboration = await prisma.collaboration.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CollaborationUpdateManyArgs>(args: SelectSubset<T, CollaborationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Collaborations and returns the data updated in the database.
+     * @param {CollaborationUpdateManyAndReturnArgs} args - Arguments to update many Collaborations.
+     * @example
+     * // Update many Collaborations
+     * const collaboration = await prisma.collaboration.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Collaborations and only return the `id`
+     * const collaborationWithIdOnly = await prisma.collaboration.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CollaborationUpdateManyAndReturnArgs>(args: SelectSubset<T, CollaborationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CollaborationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Collaboration.
+     * @param {CollaborationUpsertArgs} args - Arguments to update or create a Collaboration.
+     * @example
+     * // Update or create a Collaboration
+     * const collaboration = await prisma.collaboration.upsert({
+     *   create: {
+     *     // ... data to create a Collaboration
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Collaboration we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CollaborationUpsertArgs>(args: SelectSubset<T, CollaborationUpsertArgs<ExtArgs>>): Prisma__CollaborationClient<$Result.GetResult<Prisma.$CollaborationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Collaborations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CollaborationCountArgs} args - Arguments to filter Collaborations to count.
+     * @example
+     * // Count the number of Collaborations
+     * const count = await prisma.collaboration.count({
+     *   where: {
+     *     // ... the filter for the Collaborations we want to count
+     *   }
+     * })
+    **/
+    count<T extends CollaborationCountArgs>(
+      args?: Subset<T, CollaborationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CollaborationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Collaboration.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CollaborationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CollaborationAggregateArgs>(args: Subset<T, CollaborationAggregateArgs>): Prisma.PrismaPromise<GetCollaborationAggregateType<T>>
+
+    /**
+     * Group by Collaboration.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CollaborationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CollaborationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CollaborationGroupByArgs['orderBy'] }
+        : { orderBy?: CollaborationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CollaborationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCollaborationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Collaboration model
+   */
+  readonly fields: CollaborationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Collaboration.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CollaborationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    document<T extends DocumentDefaultArgs<ExtArgs> = {}>(args?: Subset<T, DocumentDefaultArgs<ExtArgs>>): Prisma__DocumentClient<$Result.GetResult<Prisma.$DocumentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Collaboration model
+   */
+  interface CollaborationFieldRefs {
+    readonly id: FieldRef<"Collaboration", 'String'>
+    readonly userId: FieldRef<"Collaboration", 'String'>
+    readonly documentId: FieldRef<"Collaboration", 'String'>
+    readonly role: FieldRef<"Collaboration", 'Role'>
+    readonly createdAt: FieldRef<"Collaboration", 'DateTime'>
+    readonly updatedAt: FieldRef<"Collaboration", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Collaboration findUnique
+   */
+  export type CollaborationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Collaboration
+     */
+    select?: CollaborationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Collaboration
+     */
+    omit?: CollaborationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CollaborationInclude<ExtArgs> | null
+    /**
+     * Filter, which Collaboration to fetch.
+     */
+    where: CollaborationWhereUniqueInput
+  }
+
+  /**
+   * Collaboration findUniqueOrThrow
+   */
+  export type CollaborationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Collaboration
+     */
+    select?: CollaborationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Collaboration
+     */
+    omit?: CollaborationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CollaborationInclude<ExtArgs> | null
+    /**
+     * Filter, which Collaboration to fetch.
+     */
+    where: CollaborationWhereUniqueInput
+  }
+
+  /**
+   * Collaboration findFirst
+   */
+  export type CollaborationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Collaboration
+     */
+    select?: CollaborationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Collaboration
+     */
+    omit?: CollaborationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CollaborationInclude<ExtArgs> | null
+    /**
+     * Filter, which Collaboration to fetch.
+     */
+    where?: CollaborationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Collaborations to fetch.
+     */
+    orderBy?: CollaborationOrderByWithRelationInput | CollaborationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Collaborations.
+     */
+    cursor?: CollaborationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Collaborations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Collaborations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Collaborations.
+     */
+    distinct?: CollaborationScalarFieldEnum | CollaborationScalarFieldEnum[]
+  }
+
+  /**
+   * Collaboration findFirstOrThrow
+   */
+  export type CollaborationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Collaboration
+     */
+    select?: CollaborationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Collaboration
+     */
+    omit?: CollaborationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CollaborationInclude<ExtArgs> | null
+    /**
+     * Filter, which Collaboration to fetch.
+     */
+    where?: CollaborationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Collaborations to fetch.
+     */
+    orderBy?: CollaborationOrderByWithRelationInput | CollaborationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Collaborations.
+     */
+    cursor?: CollaborationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Collaborations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Collaborations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Collaborations.
+     */
+    distinct?: CollaborationScalarFieldEnum | CollaborationScalarFieldEnum[]
+  }
+
+  /**
+   * Collaboration findMany
+   */
+  export type CollaborationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Collaboration
+     */
+    select?: CollaborationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Collaboration
+     */
+    omit?: CollaborationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CollaborationInclude<ExtArgs> | null
+    /**
+     * Filter, which Collaborations to fetch.
+     */
+    where?: CollaborationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Collaborations to fetch.
+     */
+    orderBy?: CollaborationOrderByWithRelationInput | CollaborationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Collaborations.
+     */
+    cursor?: CollaborationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Collaborations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Collaborations.
+     */
+    skip?: number
+    distinct?: CollaborationScalarFieldEnum | CollaborationScalarFieldEnum[]
+  }
+
+  /**
+   * Collaboration create
+   */
+  export type CollaborationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Collaboration
+     */
+    select?: CollaborationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Collaboration
+     */
+    omit?: CollaborationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CollaborationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Collaboration.
+     */
+    data: XOR<CollaborationCreateInput, CollaborationUncheckedCreateInput>
+  }
+
+  /**
+   * Collaboration createMany
+   */
+  export type CollaborationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Collaborations.
+     */
+    data: CollaborationCreateManyInput | CollaborationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Collaboration createManyAndReturn
+   */
+  export type CollaborationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Collaboration
+     */
+    select?: CollaborationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Collaboration
+     */
+    omit?: CollaborationOmit<ExtArgs> | null
+    /**
+     * The data used to create many Collaborations.
+     */
+    data: CollaborationCreateManyInput | CollaborationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CollaborationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Collaboration update
+   */
+  export type CollaborationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Collaboration
+     */
+    select?: CollaborationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Collaboration
+     */
+    omit?: CollaborationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CollaborationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Collaboration.
+     */
+    data: XOR<CollaborationUpdateInput, CollaborationUncheckedUpdateInput>
+    /**
+     * Choose, which Collaboration to update.
+     */
+    where: CollaborationWhereUniqueInput
+  }
+
+  /**
+   * Collaboration updateMany
+   */
+  export type CollaborationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Collaborations.
+     */
+    data: XOR<CollaborationUpdateManyMutationInput, CollaborationUncheckedUpdateManyInput>
+    /**
+     * Filter which Collaborations to update
+     */
+    where?: CollaborationWhereInput
+    /**
+     * Limit how many Collaborations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Collaboration updateManyAndReturn
+   */
+  export type CollaborationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Collaboration
+     */
+    select?: CollaborationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Collaboration
+     */
+    omit?: CollaborationOmit<ExtArgs> | null
+    /**
+     * The data used to update Collaborations.
+     */
+    data: XOR<CollaborationUpdateManyMutationInput, CollaborationUncheckedUpdateManyInput>
+    /**
+     * Filter which Collaborations to update
+     */
+    where?: CollaborationWhereInput
+    /**
+     * Limit how many Collaborations to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CollaborationIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Collaboration upsert
+   */
+  export type CollaborationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Collaboration
+     */
+    select?: CollaborationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Collaboration
+     */
+    omit?: CollaborationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CollaborationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Collaboration to update in case it exists.
+     */
+    where: CollaborationWhereUniqueInput
+    /**
+     * In case the Collaboration found by the `where` argument doesn't exist, create a new Collaboration with this data.
+     */
+    create: XOR<CollaborationCreateInput, CollaborationUncheckedCreateInput>
+    /**
+     * In case the Collaboration was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CollaborationUpdateInput, CollaborationUncheckedUpdateInput>
+  }
+
+  /**
+   * Collaboration delete
+   */
+  export type CollaborationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Collaboration
+     */
+    select?: CollaborationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Collaboration
+     */
+    omit?: CollaborationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CollaborationInclude<ExtArgs> | null
+    /**
+     * Filter which Collaboration to delete.
+     */
+    where: CollaborationWhereUniqueInput
+  }
+
+  /**
+   * Collaboration deleteMany
+   */
+  export type CollaborationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Collaborations to delete
+     */
+    where?: CollaborationWhereInput
+    /**
+     * Limit how many Collaborations to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Collaboration without action
+   */
+  export type CollaborationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Collaboration
+     */
+    select?: CollaborationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Collaboration
+     */
+    omit?: CollaborationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CollaborationInclude<ExtArgs> | null
   }
 
 
@@ -3180,6 +4466,18 @@ export namespace Prisma {
   };
 
   export type DocumentScalarFieldEnum = (typeof DocumentScalarFieldEnum)[keyof typeof DocumentScalarFieldEnum]
+
+
+  export const CollaborationScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    documentId: 'documentId',
+    role: 'role',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CollaborationScalarFieldEnum = (typeof CollaborationScalarFieldEnum)[keyof typeof CollaborationScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -3240,6 +4538,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Role'
+   */
+  export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
+    
+
+
+  /**
+   * Reference to a field of type 'Role[]'
+   */
+  export type ListEnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Int'
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -3267,6 +4579,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     documents?: DocumentListRelationFilter
+    collaborations?: CollaborationListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -3277,6 +4590,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     documents?: DocumentOrderByRelationAggregateInput
+    collaborations?: CollaborationOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -3290,6 +4604,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     documents?: DocumentListRelationFilter
+    collaborations?: CollaborationListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -3327,6 +4642,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Document"> | Date | string
     updatedAt?: DateTimeFilter<"Document"> | Date | string
     owner?: XOR<UserScalarRelationFilter, UserWhereInput>
+    collaborators?: CollaborationListRelationFilter
   }
 
   export type DocumentOrderByWithRelationInput = {
@@ -3337,6 +4653,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     owner?: UserOrderByWithRelationInput
+    collaborators?: CollaborationOrderByRelationAggregateInput
   }
 
   export type DocumentWhereUniqueInput = Prisma.AtLeast<{
@@ -3350,6 +4667,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Document"> | Date | string
     updatedAt?: DateTimeFilter<"Document"> | Date | string
     owner?: XOR<UserScalarRelationFilter, UserWhereInput>
+    collaborators?: CollaborationListRelationFilter
   }, "id">
 
   export type DocumentOrderByWithAggregationInput = {
@@ -3376,6 +4694,70 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"Document"> | Date | string
   }
 
+  export type CollaborationWhereInput = {
+    AND?: CollaborationWhereInput | CollaborationWhereInput[]
+    OR?: CollaborationWhereInput[]
+    NOT?: CollaborationWhereInput | CollaborationWhereInput[]
+    id?: StringFilter<"Collaboration"> | string
+    userId?: StringFilter<"Collaboration"> | string
+    documentId?: StringFilter<"Collaboration"> | string
+    role?: EnumRoleFilter<"Collaboration"> | $Enums.Role
+    createdAt?: DateTimeFilter<"Collaboration"> | Date | string
+    updatedAt?: DateTimeFilter<"Collaboration"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    document?: XOR<DocumentScalarRelationFilter, DocumentWhereInput>
+  }
+
+  export type CollaborationOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    documentId?: SortOrder
+    role?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    document?: DocumentOrderByWithRelationInput
+  }
+
+  export type CollaborationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId_documentId?: CollaborationUserIdDocumentIdCompoundUniqueInput
+    AND?: CollaborationWhereInput | CollaborationWhereInput[]
+    OR?: CollaborationWhereInput[]
+    NOT?: CollaborationWhereInput | CollaborationWhereInput[]
+    userId?: StringFilter<"Collaboration"> | string
+    documentId?: StringFilter<"Collaboration"> | string
+    role?: EnumRoleFilter<"Collaboration"> | $Enums.Role
+    createdAt?: DateTimeFilter<"Collaboration"> | Date | string
+    updatedAt?: DateTimeFilter<"Collaboration"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    document?: XOR<DocumentScalarRelationFilter, DocumentWhereInput>
+  }, "id" | "userId_documentId">
+
+  export type CollaborationOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    documentId?: SortOrder
+    role?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CollaborationCountOrderByAggregateInput
+    _max?: CollaborationMaxOrderByAggregateInput
+    _min?: CollaborationMinOrderByAggregateInput
+  }
+
+  export type CollaborationScalarWhereWithAggregatesInput = {
+    AND?: CollaborationScalarWhereWithAggregatesInput | CollaborationScalarWhereWithAggregatesInput[]
+    OR?: CollaborationScalarWhereWithAggregatesInput[]
+    NOT?: CollaborationScalarWhereWithAggregatesInput | CollaborationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Collaboration"> | string
+    userId?: StringWithAggregatesFilter<"Collaboration"> | string
+    documentId?: StringWithAggregatesFilter<"Collaboration"> | string
+    role?: EnumRoleWithAggregatesFilter<"Collaboration"> | $Enums.Role
+    createdAt?: DateTimeWithAggregatesFilter<"Collaboration"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Collaboration"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
@@ -3384,6 +4766,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     documents?: DocumentCreateNestedManyWithoutOwnerInput
+    collaborations?: CollaborationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -3394,6 +4777,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     documents?: DocumentUncheckedCreateNestedManyWithoutOwnerInput
+    collaborations?: CollaborationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -3404,6 +4788,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     documents?: DocumentUpdateManyWithoutOwnerNestedInput
+    collaborations?: CollaborationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -3414,6 +4799,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     documents?: DocumentUncheckedUpdateManyWithoutOwnerNestedInput
+    collaborations?: CollaborationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -3450,6 +4836,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     owner: UserCreateNestedOneWithoutDocumentsInput
+    collaborators?: CollaborationCreateNestedManyWithoutDocumentInput
   }
 
   export type DocumentUncheckedCreateInput = {
@@ -3459,6 +4846,7 @@ export namespace Prisma {
     ownerId: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    collaborators?: CollaborationUncheckedCreateNestedManyWithoutDocumentInput
   }
 
   export type DocumentUpdateInput = {
@@ -3468,6 +4856,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     owner?: UserUpdateOneRequiredWithoutDocumentsNestedInput
+    collaborators?: CollaborationUpdateManyWithoutDocumentNestedInput
   }
 
   export type DocumentUncheckedUpdateInput = {
@@ -3477,6 +4866,7 @@ export namespace Prisma {
     ownerId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    collaborators?: CollaborationUncheckedUpdateManyWithoutDocumentNestedInput
   }
 
   export type DocumentCreateManyInput = {
@@ -3501,6 +4891,67 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
     ownerId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CollaborationCreateInput = {
+    id?: string
+    role?: $Enums.Role
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCollaborationsInput
+    document: DocumentCreateNestedOneWithoutCollaboratorsInput
+  }
+
+  export type CollaborationUncheckedCreateInput = {
+    id?: string
+    userId: string
+    documentId: string
+    role?: $Enums.Role
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CollaborationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCollaborationsNestedInput
+    document?: DocumentUpdateOneRequiredWithoutCollaboratorsNestedInput
+  }
+
+  export type CollaborationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    documentId?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CollaborationCreateManyInput = {
+    id?: string
+    userId: string
+    documentId: string
+    role?: $Enums.Role
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CollaborationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CollaborationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    documentId?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -3552,12 +5003,22 @@ export namespace Prisma {
     none?: DocumentWhereInput
   }
 
+  export type CollaborationListRelationFilter = {
+    every?: CollaborationWhereInput
+    some?: CollaborationWhereInput
+    none?: CollaborationWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
   }
 
   export type DocumentOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CollaborationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -3670,6 +5131,60 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type EnumRoleFilter<$PrismaModel = never> = {
+    equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumRoleFilter<$PrismaModel> | $Enums.Role
+  }
+
+  export type DocumentScalarRelationFilter = {
+    is?: DocumentWhereInput
+    isNot?: DocumentWhereInput
+  }
+
+  export type CollaborationUserIdDocumentIdCompoundUniqueInput = {
+    userId: string
+    documentId: string
+  }
+
+  export type CollaborationCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    documentId?: SortOrder
+    role?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CollaborationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    documentId?: SortOrder
+    role?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CollaborationMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    documentId?: SortOrder
+    role?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumRoleWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumRoleWithAggregatesFilter<$PrismaModel> | $Enums.Role
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRoleFilter<$PrismaModel>
+    _max?: NestedEnumRoleFilter<$PrismaModel>
+  }
+
   export type DocumentCreateNestedManyWithoutOwnerInput = {
     create?: XOR<DocumentCreateWithoutOwnerInput, DocumentUncheckedCreateWithoutOwnerInput> | DocumentCreateWithoutOwnerInput[] | DocumentUncheckedCreateWithoutOwnerInput[]
     connectOrCreate?: DocumentCreateOrConnectWithoutOwnerInput | DocumentCreateOrConnectWithoutOwnerInput[]
@@ -3677,11 +5192,25 @@ export namespace Prisma {
     connect?: DocumentWhereUniqueInput | DocumentWhereUniqueInput[]
   }
 
+  export type CollaborationCreateNestedManyWithoutUserInput = {
+    create?: XOR<CollaborationCreateWithoutUserInput, CollaborationUncheckedCreateWithoutUserInput> | CollaborationCreateWithoutUserInput[] | CollaborationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CollaborationCreateOrConnectWithoutUserInput | CollaborationCreateOrConnectWithoutUserInput[]
+    createMany?: CollaborationCreateManyUserInputEnvelope
+    connect?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+  }
+
   export type DocumentUncheckedCreateNestedManyWithoutOwnerInput = {
     create?: XOR<DocumentCreateWithoutOwnerInput, DocumentUncheckedCreateWithoutOwnerInput> | DocumentCreateWithoutOwnerInput[] | DocumentUncheckedCreateWithoutOwnerInput[]
     connectOrCreate?: DocumentCreateOrConnectWithoutOwnerInput | DocumentCreateOrConnectWithoutOwnerInput[]
     createMany?: DocumentCreateManyOwnerInputEnvelope
     connect?: DocumentWhereUniqueInput | DocumentWhereUniqueInput[]
+  }
+
+  export type CollaborationUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<CollaborationCreateWithoutUserInput, CollaborationUncheckedCreateWithoutUserInput> | CollaborationCreateWithoutUserInput[] | CollaborationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CollaborationCreateOrConnectWithoutUserInput | CollaborationCreateOrConnectWithoutUserInput[]
+    createMany?: CollaborationCreateManyUserInputEnvelope
+    connect?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -3710,6 +5239,20 @@ export namespace Prisma {
     deleteMany?: DocumentScalarWhereInput | DocumentScalarWhereInput[]
   }
 
+  export type CollaborationUpdateManyWithoutUserNestedInput = {
+    create?: XOR<CollaborationCreateWithoutUserInput, CollaborationUncheckedCreateWithoutUserInput> | CollaborationCreateWithoutUserInput[] | CollaborationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CollaborationCreateOrConnectWithoutUserInput | CollaborationCreateOrConnectWithoutUserInput[]
+    upsert?: CollaborationUpsertWithWhereUniqueWithoutUserInput | CollaborationUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: CollaborationCreateManyUserInputEnvelope
+    set?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+    disconnect?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+    delete?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+    connect?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+    update?: CollaborationUpdateWithWhereUniqueWithoutUserInput | CollaborationUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: CollaborationUpdateManyWithWhereWithoutUserInput | CollaborationUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: CollaborationScalarWhereInput | CollaborationScalarWhereInput[]
+  }
+
   export type DocumentUncheckedUpdateManyWithoutOwnerNestedInput = {
     create?: XOR<DocumentCreateWithoutOwnerInput, DocumentUncheckedCreateWithoutOwnerInput> | DocumentCreateWithoutOwnerInput[] | DocumentUncheckedCreateWithoutOwnerInput[]
     connectOrCreate?: DocumentCreateOrConnectWithoutOwnerInput | DocumentCreateOrConnectWithoutOwnerInput[]
@@ -3724,10 +5267,38 @@ export namespace Prisma {
     deleteMany?: DocumentScalarWhereInput | DocumentScalarWhereInput[]
   }
 
+  export type CollaborationUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<CollaborationCreateWithoutUserInput, CollaborationUncheckedCreateWithoutUserInput> | CollaborationCreateWithoutUserInput[] | CollaborationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CollaborationCreateOrConnectWithoutUserInput | CollaborationCreateOrConnectWithoutUserInput[]
+    upsert?: CollaborationUpsertWithWhereUniqueWithoutUserInput | CollaborationUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: CollaborationCreateManyUserInputEnvelope
+    set?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+    disconnect?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+    delete?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+    connect?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+    update?: CollaborationUpdateWithWhereUniqueWithoutUserInput | CollaborationUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: CollaborationUpdateManyWithWhereWithoutUserInput | CollaborationUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: CollaborationScalarWhereInput | CollaborationScalarWhereInput[]
+  }
+
   export type UserCreateNestedOneWithoutDocumentsInput = {
     create?: XOR<UserCreateWithoutDocumentsInput, UserUncheckedCreateWithoutDocumentsInput>
     connectOrCreate?: UserCreateOrConnectWithoutDocumentsInput
     connect?: UserWhereUniqueInput
+  }
+
+  export type CollaborationCreateNestedManyWithoutDocumentInput = {
+    create?: XOR<CollaborationCreateWithoutDocumentInput, CollaborationUncheckedCreateWithoutDocumentInput> | CollaborationCreateWithoutDocumentInput[] | CollaborationUncheckedCreateWithoutDocumentInput[]
+    connectOrCreate?: CollaborationCreateOrConnectWithoutDocumentInput | CollaborationCreateOrConnectWithoutDocumentInput[]
+    createMany?: CollaborationCreateManyDocumentInputEnvelope
+    connect?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+  }
+
+  export type CollaborationUncheckedCreateNestedManyWithoutDocumentInput = {
+    create?: XOR<CollaborationCreateWithoutDocumentInput, CollaborationUncheckedCreateWithoutDocumentInput> | CollaborationCreateWithoutDocumentInput[] | CollaborationUncheckedCreateWithoutDocumentInput[]
+    connectOrCreate?: CollaborationCreateOrConnectWithoutDocumentInput | CollaborationCreateOrConnectWithoutDocumentInput[]
+    createMany?: CollaborationCreateManyDocumentInputEnvelope
+    connect?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
   }
 
   export type UserUpdateOneRequiredWithoutDocumentsNestedInput = {
@@ -3736,6 +5307,66 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutDocumentsInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutDocumentsInput, UserUpdateWithoutDocumentsInput>, UserUncheckedUpdateWithoutDocumentsInput>
+  }
+
+  export type CollaborationUpdateManyWithoutDocumentNestedInput = {
+    create?: XOR<CollaborationCreateWithoutDocumentInput, CollaborationUncheckedCreateWithoutDocumentInput> | CollaborationCreateWithoutDocumentInput[] | CollaborationUncheckedCreateWithoutDocumentInput[]
+    connectOrCreate?: CollaborationCreateOrConnectWithoutDocumentInput | CollaborationCreateOrConnectWithoutDocumentInput[]
+    upsert?: CollaborationUpsertWithWhereUniqueWithoutDocumentInput | CollaborationUpsertWithWhereUniqueWithoutDocumentInput[]
+    createMany?: CollaborationCreateManyDocumentInputEnvelope
+    set?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+    disconnect?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+    delete?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+    connect?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+    update?: CollaborationUpdateWithWhereUniqueWithoutDocumentInput | CollaborationUpdateWithWhereUniqueWithoutDocumentInput[]
+    updateMany?: CollaborationUpdateManyWithWhereWithoutDocumentInput | CollaborationUpdateManyWithWhereWithoutDocumentInput[]
+    deleteMany?: CollaborationScalarWhereInput | CollaborationScalarWhereInput[]
+  }
+
+  export type CollaborationUncheckedUpdateManyWithoutDocumentNestedInput = {
+    create?: XOR<CollaborationCreateWithoutDocumentInput, CollaborationUncheckedCreateWithoutDocumentInput> | CollaborationCreateWithoutDocumentInput[] | CollaborationUncheckedCreateWithoutDocumentInput[]
+    connectOrCreate?: CollaborationCreateOrConnectWithoutDocumentInput | CollaborationCreateOrConnectWithoutDocumentInput[]
+    upsert?: CollaborationUpsertWithWhereUniqueWithoutDocumentInput | CollaborationUpsertWithWhereUniqueWithoutDocumentInput[]
+    createMany?: CollaborationCreateManyDocumentInputEnvelope
+    set?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+    disconnect?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+    delete?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+    connect?: CollaborationWhereUniqueInput | CollaborationWhereUniqueInput[]
+    update?: CollaborationUpdateWithWhereUniqueWithoutDocumentInput | CollaborationUpdateWithWhereUniqueWithoutDocumentInput[]
+    updateMany?: CollaborationUpdateManyWithWhereWithoutDocumentInput | CollaborationUpdateManyWithWhereWithoutDocumentInput[]
+    deleteMany?: CollaborationScalarWhereInput | CollaborationScalarWhereInput[]
+  }
+
+  export type UserCreateNestedOneWithoutCollaborationsInput = {
+    create?: XOR<UserCreateWithoutCollaborationsInput, UserUncheckedCreateWithoutCollaborationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCollaborationsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type DocumentCreateNestedOneWithoutCollaboratorsInput = {
+    create?: XOR<DocumentCreateWithoutCollaboratorsInput, DocumentUncheckedCreateWithoutCollaboratorsInput>
+    connectOrCreate?: DocumentCreateOrConnectWithoutCollaboratorsInput
+    connect?: DocumentWhereUniqueInput
+  }
+
+  export type EnumRoleFieldUpdateOperationsInput = {
+    set?: $Enums.Role
+  }
+
+  export type UserUpdateOneRequiredWithoutCollaborationsNestedInput = {
+    create?: XOR<UserCreateWithoutCollaborationsInput, UserUncheckedCreateWithoutCollaborationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCollaborationsInput
+    upsert?: UserUpsertWithoutCollaborationsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCollaborationsInput, UserUpdateWithoutCollaborationsInput>, UserUncheckedUpdateWithoutCollaborationsInput>
+  }
+
+  export type DocumentUpdateOneRequiredWithoutCollaboratorsNestedInput = {
+    create?: XOR<DocumentCreateWithoutCollaboratorsInput, DocumentUncheckedCreateWithoutCollaboratorsInput>
+    connectOrCreate?: DocumentCreateOrConnectWithoutCollaboratorsInput
+    upsert?: DocumentUpsertWithoutCollaboratorsInput
+    connect?: DocumentWhereUniqueInput
+    update?: XOR<XOR<DocumentUpdateToOneWithWhereWithoutCollaboratorsInput, DocumentUpdateWithoutCollaboratorsInput>, DocumentUncheckedUpdateWithoutCollaboratorsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -3847,12 +5478,30 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type NestedEnumRoleFilter<$PrismaModel = never> = {
+    equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumRoleFilter<$PrismaModel> | $Enums.Role
+  }
+
+  export type NestedEnumRoleWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumRoleWithAggregatesFilter<$PrismaModel> | $Enums.Role
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRoleFilter<$PrismaModel>
+    _max?: NestedEnumRoleFilter<$PrismaModel>
+  }
+
   export type DocumentCreateWithoutOwnerInput = {
     id?: string
     title: string
     content?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    collaborators?: CollaborationCreateNestedManyWithoutDocumentInput
   }
 
   export type DocumentUncheckedCreateWithoutOwnerInput = {
@@ -3861,6 +5510,7 @@ export namespace Prisma {
     content?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    collaborators?: CollaborationUncheckedCreateNestedManyWithoutDocumentInput
   }
 
   export type DocumentCreateOrConnectWithoutOwnerInput = {
@@ -3870,6 +5520,32 @@ export namespace Prisma {
 
   export type DocumentCreateManyOwnerInputEnvelope = {
     data: DocumentCreateManyOwnerInput | DocumentCreateManyOwnerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CollaborationCreateWithoutUserInput = {
+    id?: string
+    role?: $Enums.Role
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    document: DocumentCreateNestedOneWithoutCollaboratorsInput
+  }
+
+  export type CollaborationUncheckedCreateWithoutUserInput = {
+    id?: string
+    documentId: string
+    role?: $Enums.Role
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CollaborationCreateOrConnectWithoutUserInput = {
+    where: CollaborationWhereUniqueInput
+    create: XOR<CollaborationCreateWithoutUserInput, CollaborationUncheckedCreateWithoutUserInput>
+  }
+
+  export type CollaborationCreateManyUserInputEnvelope = {
+    data: CollaborationCreateManyUserInput | CollaborationCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -3901,6 +5577,34 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Document"> | Date | string
   }
 
+  export type CollaborationUpsertWithWhereUniqueWithoutUserInput = {
+    where: CollaborationWhereUniqueInput
+    update: XOR<CollaborationUpdateWithoutUserInput, CollaborationUncheckedUpdateWithoutUserInput>
+    create: XOR<CollaborationCreateWithoutUserInput, CollaborationUncheckedCreateWithoutUserInput>
+  }
+
+  export type CollaborationUpdateWithWhereUniqueWithoutUserInput = {
+    where: CollaborationWhereUniqueInput
+    data: XOR<CollaborationUpdateWithoutUserInput, CollaborationUncheckedUpdateWithoutUserInput>
+  }
+
+  export type CollaborationUpdateManyWithWhereWithoutUserInput = {
+    where: CollaborationScalarWhereInput
+    data: XOR<CollaborationUpdateManyMutationInput, CollaborationUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type CollaborationScalarWhereInput = {
+    AND?: CollaborationScalarWhereInput | CollaborationScalarWhereInput[]
+    OR?: CollaborationScalarWhereInput[]
+    NOT?: CollaborationScalarWhereInput | CollaborationScalarWhereInput[]
+    id?: StringFilter<"Collaboration"> | string
+    userId?: StringFilter<"Collaboration"> | string
+    documentId?: StringFilter<"Collaboration"> | string
+    role?: EnumRoleFilter<"Collaboration"> | $Enums.Role
+    createdAt?: DateTimeFilter<"Collaboration"> | Date | string
+    updatedAt?: DateTimeFilter<"Collaboration"> | Date | string
+  }
+
   export type UserCreateWithoutDocumentsInput = {
     id?: string
     email: string
@@ -3908,6 +5612,7 @@ export namespace Prisma {
     name?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    collaborations?: CollaborationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutDocumentsInput = {
@@ -3917,11 +5622,38 @@ export namespace Prisma {
     name?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    collaborations?: CollaborationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutDocumentsInput = {
     where: UserWhereUniqueInput
     create: XOR<UserCreateWithoutDocumentsInput, UserUncheckedCreateWithoutDocumentsInput>
+  }
+
+  export type CollaborationCreateWithoutDocumentInput = {
+    id?: string
+    role?: $Enums.Role
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCollaborationsInput
+  }
+
+  export type CollaborationUncheckedCreateWithoutDocumentInput = {
+    id?: string
+    userId: string
+    role?: $Enums.Role
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CollaborationCreateOrConnectWithoutDocumentInput = {
+    where: CollaborationWhereUniqueInput
+    create: XOR<CollaborationCreateWithoutDocumentInput, CollaborationUncheckedCreateWithoutDocumentInput>
+  }
+
+  export type CollaborationCreateManyDocumentInputEnvelope = {
+    data: CollaborationCreateManyDocumentInput | CollaborationCreateManyDocumentInput[]
+    skipDuplicates?: boolean
   }
 
   export type UserUpsertWithoutDocumentsInput = {
@@ -3942,6 +5674,7 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    collaborations?: CollaborationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutDocumentsInput = {
@@ -3949,6 +5682,131 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    collaborations?: CollaborationUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type CollaborationUpsertWithWhereUniqueWithoutDocumentInput = {
+    where: CollaborationWhereUniqueInput
+    update: XOR<CollaborationUpdateWithoutDocumentInput, CollaborationUncheckedUpdateWithoutDocumentInput>
+    create: XOR<CollaborationCreateWithoutDocumentInput, CollaborationUncheckedCreateWithoutDocumentInput>
+  }
+
+  export type CollaborationUpdateWithWhereUniqueWithoutDocumentInput = {
+    where: CollaborationWhereUniqueInput
+    data: XOR<CollaborationUpdateWithoutDocumentInput, CollaborationUncheckedUpdateWithoutDocumentInput>
+  }
+
+  export type CollaborationUpdateManyWithWhereWithoutDocumentInput = {
+    where: CollaborationScalarWhereInput
+    data: XOR<CollaborationUpdateManyMutationInput, CollaborationUncheckedUpdateManyWithoutDocumentInput>
+  }
+
+  export type UserCreateWithoutCollaborationsInput = {
+    id?: string
+    email: string
+    password: string
+    name?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    documents?: DocumentCreateNestedManyWithoutOwnerInput
+  }
+
+  export type UserUncheckedCreateWithoutCollaborationsInput = {
+    id?: string
+    email: string
+    password: string
+    name?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    documents?: DocumentUncheckedCreateNestedManyWithoutOwnerInput
+  }
+
+  export type UserCreateOrConnectWithoutCollaborationsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutCollaborationsInput, UserUncheckedCreateWithoutCollaborationsInput>
+  }
+
+  export type DocumentCreateWithoutCollaboratorsInput = {
+    id?: string
+    title: string
+    content?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    owner: UserCreateNestedOneWithoutDocumentsInput
+  }
+
+  export type DocumentUncheckedCreateWithoutCollaboratorsInput = {
+    id?: string
+    title: string
+    content?: string
+    ownerId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DocumentCreateOrConnectWithoutCollaboratorsInput = {
+    where: DocumentWhereUniqueInput
+    create: XOR<DocumentCreateWithoutCollaboratorsInput, DocumentUncheckedCreateWithoutCollaboratorsInput>
+  }
+
+  export type UserUpsertWithoutCollaborationsInput = {
+    update: XOR<UserUpdateWithoutCollaborationsInput, UserUncheckedUpdateWithoutCollaborationsInput>
+    create: XOR<UserCreateWithoutCollaborationsInput, UserUncheckedCreateWithoutCollaborationsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutCollaborationsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutCollaborationsInput, UserUncheckedUpdateWithoutCollaborationsInput>
+  }
+
+  export type UserUpdateWithoutCollaborationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    documents?: DocumentUpdateManyWithoutOwnerNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutCollaborationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    documents?: DocumentUncheckedUpdateManyWithoutOwnerNestedInput
+  }
+
+  export type DocumentUpsertWithoutCollaboratorsInput = {
+    update: XOR<DocumentUpdateWithoutCollaboratorsInput, DocumentUncheckedUpdateWithoutCollaboratorsInput>
+    create: XOR<DocumentCreateWithoutCollaboratorsInput, DocumentUncheckedCreateWithoutCollaboratorsInput>
+    where?: DocumentWhereInput
+  }
+
+  export type DocumentUpdateToOneWithWhereWithoutCollaboratorsInput = {
+    where?: DocumentWhereInput
+    data: XOR<DocumentUpdateWithoutCollaboratorsInput, DocumentUncheckedUpdateWithoutCollaboratorsInput>
+  }
+
+  export type DocumentUpdateWithoutCollaboratorsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    owner?: UserUpdateOneRequiredWithoutDocumentsNestedInput
+  }
+
+  export type DocumentUncheckedUpdateWithoutCollaboratorsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -3961,12 +5819,21 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type CollaborationCreateManyUserInput = {
+    id?: string
+    documentId: string
+    role?: $Enums.Role
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type DocumentUpdateWithoutOwnerInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    collaborators?: CollaborationUpdateManyWithoutDocumentNestedInput
   }
 
   export type DocumentUncheckedUpdateWithoutOwnerInput = {
@@ -3975,12 +5842,69 @@ export namespace Prisma {
     content?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    collaborators?: CollaborationUncheckedUpdateManyWithoutDocumentNestedInput
   }
 
   export type DocumentUncheckedUpdateManyWithoutOwnerInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CollaborationUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    document?: DocumentUpdateOneRequiredWithoutCollaboratorsNestedInput
+  }
+
+  export type CollaborationUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    documentId?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CollaborationUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    documentId?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CollaborationCreateManyDocumentInput = {
+    id?: string
+    userId: string
+    role?: $Enums.Role
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CollaborationUpdateWithoutDocumentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCollaborationsNestedInput
+  }
+
+  export type CollaborationUncheckedUpdateWithoutDocumentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CollaborationUncheckedUpdateManyWithoutDocumentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
