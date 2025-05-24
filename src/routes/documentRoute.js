@@ -10,10 +10,10 @@ import {
 } from "../controllers/documentController.js";
 const router = express.Router();
 
-router.get("/documents", authMiddleware, getAllDocuments);
-router.get("/document/:id", authMiddleware, getDocument);
-router.post("/document/:id", authMiddleware, postDocument);
-router.put("/document/:id", authMiddleware, updateDocument);
-router.delete("/document/:id", authMiddleware, deleteDocument);
+router.get("/", authMiddleware, getAllDocuments);
+router.get("/:id", authMiddleware, getDocument);
+router.post("/", authMiddleware, postDocument);
+router.put("/:id", authMiddleware, updateDocument);
+router.delete("/:id", authMiddleware, deleteDocument);
 
 export default router;

@@ -10,16 +10,18 @@ const authMiddleware = (req, res, next) => {
       return res
         .status(401)
         .json({ message: "Access Denied: No token provided..." });
+
     //VERIFY TOKEN CREATED WHEN USER LOGIN TO CHECK THEY AUTHORIZED OR AUTHENTICATED
     jwt.verify(token, process.env.JWT_PRIVATE_KEY, (error, decoded) => {
       if (error)
         return res
-          .status(404)
-          .json({ message: "Invalidating token failed..." });
+          .status(403) // Changed from 404 to 403 for invalid token
+          .json({ message: "Invalid token..." });
+
       req.user = decoded;
       console.log("Req.user", req.user);
+      next(); // Move next() inside the callback after successful verification
     });
-    next(); // Proceed to the next middleware/route handler
   } catch (error) {
     res.status(500).json({
       message: "Internal server error in authentication...",

@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import userRoutes from "./src/routes/userRoute.js";
 import errorHandler from "./src/middlewares/errorhandler.js";
 import documentRoutes from "./src/routes/documentRoute.js";
+import collaborationRoutes from "./src/routes/collaborationRoutes.js";
 dotenv.config();
 const app = express();
 
@@ -17,7 +18,8 @@ app.get("/", (req, res) => {
 
 //ENDPOINT ROUTE
 app.use("/api/auth", userRoutes);
-app.use("/api", documentRoutes);
+app.use("/api/documents", documentRoutes);
+app.use("/api/documents", collaborationRoutes);
 
 // ERROR HANDLER MIDDLEWARER
 app.use(errorHandler);

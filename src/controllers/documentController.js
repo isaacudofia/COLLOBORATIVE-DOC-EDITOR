@@ -1,7 +1,8 @@
-import { PrismaClient } from "../../generated/prisma/client.js";
+import { PrismaClient, Role } from "../../generated/prisma/client.js";
 const prisma = new PrismaClient();
 
 //CONTROLLER TO GET ALL DOCUMENTS
+// Fix for the getAllDocuments function in documentController.js
 export const getAllDocuments = async (req, res) => {
   try {
     const ownedDocuments = await prisma.document.findMany({
@@ -22,25 +23,12 @@ export const getAllDocuments = async (req, res) => {
       },
     });
 
-    //     // New Collaboration (Junction) Model
-    // model Collaboration {
-    //   id          String   @id @default(uuid()) // Unique ID for each collaboration entry
-    //   userId      String   // Foreign key to User
-    //   documentId  String   // Foreign key to Document
-    //   role        Role     @default(EDITOR) // Role of the collaborator
-
-    //   user        User     @relation(fields: [userId], references: [id])
-    //   document    Document @relation(fields: [documentId], references: [id])
-
-    //   @@unique([userId, documentId]) // A user can only have one role per document
-    //   createdAt   DateTime @default(now())
-    //   updatedAt   DateTime @updatedAt
-    // }
-
     // Fetch documents where the user is a collaborator (excluding owned ones to avoid duplicates)
     const collaboratedDocuments = await prisma.collaboration.findMany({
-      where: { userId: req.user.userID },
-      NOT: { document: { ownerId: req.userId.userID } },
+      where: {
+        userId: req.user.userID,
+        NOT: { document: { ownerId: req.user.userID } },
+      },
       include: {
         document: {
           select: {
@@ -57,7 +45,6 @@ export const getAllDocuments = async (req, res) => {
             },
           },
         },
-        user: { select: { id: true, name: true, email: true } }, // The current user's role on this doc
         role: true,
       },
       orderBy: { document: { updatedAt: "desc" } },
@@ -77,19 +64,25 @@ export const getAllDocuments = async (req, res) => {
       new Map(combinedDocuments.map((doc) => [doc.id, doc])).values()
     );
 
-    if (!ownedDocuments || ownedDocuments.length === 0)
-      return res
-        .status(404)
-        .json({ message: "No document created by user..." });
+    // FIXED: Return all documents (owned + collaborated), not just owned
+    // Also handle the case when there are no documents at all
+    if (uniqueDocuments.length === 0) {
+      return res.status(200).json({
+        message: "No documents found for this user",
+        data: [],
+      });
+    }
 
     res.status(200).json({
-      message: "Get all documents successfully owned by the current user",
-      data: ownedDocuments,
+      message: "Successfully retrieved all documents for the current user",
+      data: uniqueDocuments, // Return the combined list, not just ownedDocuments
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error occured while fetching all documents" });
+    console.error("Error in getAllDocuments:", error);
+    res.status(500).json({
+      message: "Error occurred while fetching all documents",
+      error: error.message,
+    });
   }
 };
 
@@ -187,7 +180,7 @@ export const updateDocument = async (req, res) => {
       where: { id },
       include: {
         collaborators: {
-          where: { userId: req.user.userId },
+          where: { userId: req.user.userID },
           select: { role: true },
         },
       },
@@ -241,7 +234,7 @@ export const deleteDocument = async (req, res) => {
       where: { id },
       include: {
         collaborators: {
-          where: { userId: req.user.userId },
+          where: { userId: req.user.userID },
           select: { role: true },
         },
       },
