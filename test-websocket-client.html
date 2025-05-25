@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Collaborative Editor Test Client</title>
+    <script
+      src="https://cdn.socket.io/4.7.2/socket.io.min.js"
+      integrity="sha384-mGAoEPXg5zK3/pWqS9nK5+L+w5k+D9r2yR5Q5pX7C3K5N2/5z+q8J5B5+r5N5+"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        display: flex;
+        flex-direction: column;
+        height: 95vh;
+        background-color: #f4f4f4;
+      }
+      .section {
+        margin-bottom: 20px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+      .section h2 {
+        margin-top: 0;
+        color: #333;
+      }
+      #log {
+        border: 1px solid #eee;
+        padding: 10px;
+        min-height: 100px;
+        max-height: 200px;
+        overflow-y: scroll;
+        background-color: #e9e9e9;
+        border-radius: 4px;
+        font-size: 0.9em;
+        color: #555;
+      }
+      #documentContent {
+        flex-grow: 1;
+        border: 1px solid #ccc;
+        padding: 10px;
+        font-size: 16px;
+        line-height: 1.5;
+        resize: vertical;
+        overflow-y: auto;
+        width: calc(100% - 22px);
+        min-height: 150px;
+        border-radius: 4px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+      }
+      input[type="text"],
+      input[type="password"],
+      textarea {
+        width: calc(100% - 22px);
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      button {
+        padding: 10px 15px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-right: 10px;
+        transition: background-color 0.2s ease;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      #socketStatus,
+      #currentDocument,
+      #lastServerUpdate {
+        font-weight: bold;
+        color: #007bff;
+      }
+      .error-message {
+        color: red;
+      }
+      .success-message {
+        color: green;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Socket.IO Collaborative Editor Test Client</h1>
+
+    <div class="section">
+      <h2>Connection & Authentication</h2>
+      <label for="jwtToken"
+        >JWT Token (from a successful login API call):</label
+      >
+      <input
+        type="text"
+        id="jwtToken"
+        placeholder="Paste your JWT token here"
+      />
+      <button id="connectButton">Connect Socket</button>
+      <button id="disconnectButton" disabled>Disconnect Socket</button>
+      <p>Socket Status: <span id="socketStatus">Disconnected</span></p>
+    </div>
+
+    <div class="section">
+      <h2>Document Access</h2>
+      <label for="documentId">Document ID:</label>
+      <input
+        type="text"
+        id="documentId"
+        placeholder="Paste a document ID here"
+      />
+      <button id="joinDocumentButton" disabled>Join Document</button>
+      <button id="leaveDocumentButton" disabled>Leave Document</button>
+      <p>Current Document: <span id="currentDocument">None</span></p>
+    </div>
+
+    <div
+      class="section"
+      style="flex-grow: 1; display: flex; flex-direction: column"
+    >
+      <h2>Document Content</h2>
+      <textarea
+        id="documentContent"
+        placeholder="Document content will appear here..."
+        disabled
+      ></textarea>
+      <p>Last update from server: <span id="lastServerUpdate">Never</span></p>
+    </div>
+
+    <div class="section">
+      <h2>Log</h2>
+      <div id="log"></div>
+    </div>
+
+    <script>
+      // --- DOM Element References ---
+      const socketStatusSpan = document.getElementById("socketStatus");
+      const jwtTokenInput = document.getElementById("jwtToken");
+      const connectButton = document.getElementById("connectButton");
+      const disconnectButton = document.getElementById("disconnectButton");
+
+      const documentIdInput = document.getElementById("documentId");
+      const joinDocumentButton = document.getElementById("joinDocumentButton");
+      const leaveDocumentButton = document.getElementById(
+        "leaveDocumentButton"
+      );
+      const currentDocumentSpan = document.getElementById("currentDocument");
+
+      const documentContentTextarea =
+        document.getElementById("documentContent");
+      const lastServerUpdateSpan = document.getElementById("lastServerUpdate");
+      const logDiv = document.getElementById("log");
+
+      let socket = null; // Will hold the Socket.IO client instance
+      let currentDocumentId = null; // Stores the ID of the document currently joined
+
+      // --- Helper Functions ---
+
+      // Appends a message to the log display
+      function appendLog(msg, type = "info") {
+        const p = document.createElement("p");
+        p.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        if (type === "error") {
+          p.classList.add("error-message");
+        } else if (type === "success") {
+          p.classList.add("success-message");
+        }
+        logDiv.appendChild(p);
+        logDiv.scrollTop = logDiv.scrollHeight; // Scroll to the bottom
+      }
+
+      // Updates the UI state of buttons and status display based on socket connection
+      function updateSocketStatus(status) {
+        socketStatusSpan.textContent = status;
+        connectButton.disabled = status === "Connected";
+        disconnectButton.disabled = status !== "Connected";
+
+        // Document-related buttons are enabled only if connected AND document ID is entered/joined
+        joinDocumentButton.disabled =
+          status !== "Connected" || !documentIdInput.value.trim();
+        leaveDocumentButton.disabled =
+          status !== "Connected" || !currentDocumentId;
+        documentContentTextarea.disabled =
+          status !== "Connected" || !currentDocumentId;
+      }
+
+      // --- Socket Connection Logic ---
+      connectButton.addEventListener("click", () => {
+        const token = jwtTokenInput.value.trim();
+        if (!token) {
+          appendLog("Please enter a JWT token to connect.", "error");
+          return;
+        }
+
+        // Disconnect existing socket if any before connecting new one
+        if (socket && socket.connected) {
+          socket.disconnect();
+        }
+
+        // Initialize and connect the Socket.IO client
+        // The 'auth' object sends the token during the initial handshake
+        socket = io("http://localhost:5000", {
+          // Ensure this port matches your server's PORT
+          auth: {
+            token: token,
+          },
+        });
+
+        // --- Socket Event Listeners (Client-side) ---
+
+        // Fired when the socket successfully connects to the server
+        socket.on("connect", () => {
+          appendLog("Socket connected! ID: " + socket.id, "success");
+          updateSocketStatus("Connected");
+        });
+
+        // Fired when the socket disconnects from the server
+        socket.on("disconnect", (reason) => {
+          appendLog("Socket disconnected. Reason: " + reason, "error");
+          updateSocketStatus("Disconnected");
+          currentDocumentId = null; // Clear document context
+          currentDocumentSpan.textContent = "None";
+          documentContentTextarea.value = ""; // Clear content
+          documentContentTextarea.disabled = true; // Disable textarea
+        });
+
+        // Fired when there's an error during the connection process
+        socket.on("connect_error", (error) => {
+          appendLog("Connection Error: " + error.message, "error");
+          updateSocketStatus("Disconnected");
+        });
+
+        // Custom event from server for general errors (e.g., JWT invalid)
+        socket.on("error", (message) => {
+          appendLog(`Server Error: ${message}`, "error");
+          // If the server sends an error indicating an invalid token, disconnect
+          if (message.includes("token")) {
+            socket.disconnect();
+          }
+        });
+
+        // Custom event from server for document-specific errors (e.g., access denied to doc)
+        socket.on("document-error", (message) => {
+          appendLog(`Document Error: ${message}`, "error");
+        });
+
+        // --- Document Specific Socket Events (Received from Server) ---
+
+        // Fired when server sends initial document content after 'join-document'
+        socket.on("document-loaded", (content) => {
+          appendLog(`Document loaded. Initial content received.`, "info");
+          documentContentTextarea.value = content; // Populate the textarea
+          lastServerUpdateSpan.textContent = new Date().toLocaleTimeString();
+        });
+
+        // Fired when server broadcasts document content changes from other collaborators
+        socket.on("document-content-update", (newContent) => {
+          appendLog(`Document content updated by another user.`, "info");
+          documentContentTextarea.value = newContent; // Update textarea with received content
+          lastServerUpdateSpan.textContent = new Date().toLocaleTimeString();
+        });
+      });
+
+      // Disconnect button handler
+      disconnectButton.addEventListener("click", () => {
+        if (socket) {
+          socket.disconnect();
+        }
+      });
+
+      // --- Document Join/Leave Logic ---
+
+      // Join Document button handler
+      joinDocumentButton.addEventListener("click", () => {
+        if (!socket || !socket.connected) {
+          appendLog("Please connect the socket first.", "error");
+          return;
+        }
+        const docId = documentIdInput.value.trim();
+        if (!docId) {
+          appendLog("Please enter a Document ID.", "error");
+          return;
+        }
+        currentDocumentId = docId; // Store the ID
+        socket.emit("join-document", docId); // Emit 'join-document' event to server
+        currentDocumentSpan.textContent = docId;
+        appendLog(`Attempting to join document: ${docId}`, "info");
+        updateSocketStatus(socketStatusSpan.textContent); // Update button states
+      });
+
+      // Leave Document button handler (client-side simulation)
+      leaveDocumentButton.addEventListener("click", () => {
+        if (!socket || !socket.connected || !currentDocumentId) {
+          appendLog(
+            "Not currently in a document or socket not connected.",
+            "info"
+          );
+          return;
+        }
+        // Note: For a robust "leave document" on the server, you might emit a 'leave-document' event
+        // However, simply leaving the client-side context and potentially joining another document
+        // will cause the server to manage room changes via subsequent 'join-document'.
+        appendLog(
+          `Leaving document: ${currentDocumentId} (client-side simulation)`,
+          "info"
+        );
+        currentDocumentId = null;
+        currentDocumentSpan.textContent = "None";
+        documentContentTextarea.value = "";
+        documentContentTextarea.disabled = true;
+        updateSocketStatus(socketStatusSpan.textContent); // Update button states
+      });
+
+      // --- Document Content Change Logic (Sending Updates) ---
+      let typingTimeout;
+      documentContentTextarea.addEventListener("input", () => {
+        if (
+          !socket ||
+          !socket.connected ||
+          !currentDocumentId ||
+          documentContentTextarea.disabled
+        ) {
+          // Prevent sending if not connected or not in a document
+          return;
+        }
+        // Debounce the input to avoid sending too many events
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+          const content = documentContentTextarea.value;
+          socket.emit("document-content-change", content); // Emit 'document-content-change'
+          appendLog("Sent content change to server.", "info");
+        }, 300); // Send update after 300ms of no typing
+      });
+
+      // Initial button states on page load
+      updateSocketStatus("Disconnected");
+    </script>
+  </body>
+</html>
