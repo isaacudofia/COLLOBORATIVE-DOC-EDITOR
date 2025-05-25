@@ -1,3 +1,6 @@
+// FIXED: Added missing JWT import
+import jwt from "jsonwebtoken";
+
 // The main function that initializes Socket.IO event handlers
 const initializeSocketHandlers = (io, prisma, Role, jwtSecret) => {
   io.on("connection", async (socket) => {
@@ -8,29 +11,45 @@ const initializeSocketHandlers = (io, prisma, Role, jwtSecret) => {
 
     if (!token) {
       console.log(`Socket ${socket.id} disconnected: No token provided.`);
-      return socket.disconnect(true); // Disconnect without valid token
+      // FIXED: Emit error before disconnecting and add delay
+      socket.emit("error", "No authentication token provided");
+      setTimeout(() => socket.disconnect(true), 100);
+      return;
     }
 
     try {
-      const decoded = jwt.verify(token, jwtSecret); // Use passed jwtSecret
-      socket.userId = decoded.userID; // Attach userId to the socket object for later use
+      const decoded = jwt.verify(token, jwtSecret);
+      socket.userId = decoded.userID;
       console.log(`User ${socket.userId} connected via socket ${socket.id}`);
+
+      // FIXED: Emit successful connection event
+      socket.emit("connected", {
+        message: "Successfully connected and authenticated",
+        userId: socket.userId,
+      });
     } catch (error) {
       console.error(
         `Socket ${socket.id} - JWT verification failed:`,
         error.message
       );
-      // *** ADDED THIS LINE: Emit a specific error message before disconnecting ***
-      socket.emit(
-        "error",
-        "Authentication failed: Invalid or expired token. Please log in again."
-      );
-      return socket.disconnect(true); // Disconnect on invalid token
+
+      // FIXED: Emit error with delay before disconnecting
+      socket.emit("error", {
+        type: "authentication_failed",
+        message:
+          "Authentication failed: Invalid or expired token. Please log in again.",
+      });
+
+      setTimeout(() => socket.disconnect(true), 100);
+      return;
     }
 
     // 2. Handle 'join-document' event
-    // When a client wants to join a specific document's room
     socket.on("join-document", async (documentId) => {
+      console.log(
+        `User ${socket.userId} attempting to join document: ${documentId}`
+      );
+
       if (!documentId) {
         console.warn(
           `User ${socket.userId} attempted to join document with no ID.`
@@ -74,11 +93,13 @@ const initializeSocketHandlers = (io, prisma, Role, jwtSecret) => {
           );
         }
 
-        // Leave any previous document room the user might be in (important for single-document focus)
-        // Filter out the socket's own ID which is always a room
+        // Leave any previous document room
         Array.from(socket.rooms)
           .filter((room) => room !== socket.id)
-          .forEach((room) => socket.leave(room));
+          .forEach((room) => {
+            console.log(`User ${socket.userId} leaving room: ${room}`);
+            socket.leave(room);
+          });
 
         // Join the document-specific room
         socket.join(documentId);
@@ -86,9 +107,21 @@ const initializeSocketHandlers = (io, prisma, Role, jwtSecret) => {
           `User ${socket.userId} (socket ${socket.id}) joined document room: ${documentId}`
         );
 
-        // Send the current document content to the newly joined client
-        socket.emit("document-loaded", document.content); // Send initial content
-        socket.documentId = documentId; // Store document ID on the socket for later use
+        // FIXED: Send more comprehensive document data
+        socket.emit("document-loaded", {
+          documentId: documentId,
+          content: document.content,
+          title: document.title,
+          message: "Successfully joined document",
+        });
+
+        socket.documentId = documentId;
+
+        // FIXED: Notify other users in the room about new user joining
+        socket.to(documentId).emit("user-joined", {
+          userId: socket.userId,
+          message: `User ${socket.userId} joined the document`,
+        });
       } catch (error) {
         console.error(
           `Error joining document ${documentId} for user ${socket.userId}:`,
@@ -99,10 +132,13 @@ const initializeSocketHandlers = (io, prisma, Role, jwtSecret) => {
     });
 
     // 3. Handle 'document-content-change' event
-    // When a client sends updated content for the document they are in
     socket.on("document-content-change", async (newContent) => {
-      const documentId = socket.documentId; // Get the document ID from the socket
-      const userId = socket.userId; // Get the user ID from the authenticated socket
+      const documentId = socket.documentId;
+      const userId = socket.userId;
+
+      console.log(
+        `User ${userId} attempting to change content in document: ${documentId}`
+      );
 
       if (!documentId) {
         console.warn(
@@ -114,7 +150,6 @@ const initializeSocketHandlers = (io, prisma, Role, jwtSecret) => {
         );
       }
 
-      // Basic validation for content
       if (typeof newContent !== "string") {
         return socket.emit("document-error", "Invalid content format.");
       }
@@ -146,7 +181,6 @@ const initializeSocketHandlers = (io, prisma, Role, jwtSecret) => {
 
         // Check if user has permission to edit (OWNER or EDITOR)
         if (!isOwner && userRole !== Role.EDITOR) {
-          // Use Role.EDITOR from imported enum
           console.warn(
             `User ${userId} (role: ${userRole}) unauthorized to edit document: ${documentId}`
           );
@@ -162,9 +196,13 @@ const initializeSocketHandlers = (io, prisma, Role, jwtSecret) => {
           data: { content: newContent },
         });
 
-        // Broadcast the change to all other clients in the same document room
-        // `socket.to(documentId)` sends to everyone in the room EXCEPT the sender
-        io.to(documentId).emit("document-content-update", newContent);
+        // FIXED: Broadcast to all clients in the room INCLUDING the sender
+        io.to(documentId).emit("document-content-update", {
+          content: newContent,
+          updatedBy: userId,
+          timestamp: new Date().toISOString(),
+        });
+
         console.log(
           `Document ${documentId} content updated by ${userId} and broadcasted.`
         );
@@ -180,14 +218,36 @@ const initializeSocketHandlers = (io, prisma, Role, jwtSecret) => {
       }
     });
 
+    // FIXED: Add a test event handler
+    socket.on("test", (data) => {
+      console.log(`Test event received from user ${socket.userId}:`, data);
+      socket.emit("test-response", {
+        message: "Test successful",
+        receivedData: data,
+        timestamp: new Date().toISOString(),
+      });
+    });
+
     // 4. Handle 'disconnect' event
     socket.on("disconnect", (reason) => {
       console.log(
         `User ${socket.userId || socket.id} disconnected. Reason: ${reason}`
       );
-      // When a user disconnects, they automatically leave all rooms they were in.
+
+      // FIXED: Notify other users if the user was in a document room
+      if (socket.documentId) {
+        socket.to(socket.documentId).emit("user-left", {
+          userId: socket.userId,
+          message: `User ${socket.userId} left the document`,
+        });
+      }
+    });
+
+    // FIXED: Add error handler for socket errors
+    socket.on("error", (error) => {
+      console.error(`Socket error for user ${socket.userId}:`, error);
     });
   });
 };
 
-export default initializeSocketHandlers; // Export the function
+export default initializeSocketHandlers;
