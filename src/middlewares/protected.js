@@ -19,7 +19,7 @@ const authMiddleware = (req, res, next) => {
           .json({ message: "Invalid token..." });
 
       req.user = decoded;
-      console.log("Req.user", req.user);
+
       next(); // Move next() inside the callback after successful verification
     });
   } catch (error) {

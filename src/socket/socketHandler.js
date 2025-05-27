@@ -45,7 +45,6 @@ const debounceSaveDocument = (documentId, content) => {
         where: { id: documentId },
         data: { content: content, updatedAt: new Date() },
       });
-      console.log(`Document ${documentId} saved to DB.`);
     } catch (error) {
       console.error(`Error saving document ${documentId}:`, error);
     } finally {
@@ -58,14 +57,11 @@ const debounceSaveDocument = (documentId, content) => {
 
 const initializeSocketHandlers = (io, prismaClient, RoleEnum, jwtSecret) => {
   io.on("connection", (socket) => {
-    console.log(`Socket connected: ${socket.id}`);
-
     // --- Authentication for Socket.IO connection ---
     // This event should be emitted by the client right after `connect`
     socket.on("authenticate", (data) => {
       const { token } = data;
       if (!token) {
-        console.log(`Socket ${socket.id} authentication failed: No token.`);
         socket.emit("authenticated", {
           success: false,
           message: "No token provided.",
@@ -76,18 +72,11 @@ const initializeSocketHandlers = (io, prismaClient, RoleEnum, jwtSecret) => {
       try {
         const decoded = jwt.verify(token, jwtSecret);
         socket.user = decoded; // Attach user info to the socket (userId, userEmail from JWT)
-        console.log(
-          `Socket ${socket.id} authenticated for user: ${socket.user.userID}`
-        );
         socket.emit("authenticated", {
           success: true,
           userId: socket.user.userID,
         });
       } catch (error) {
-        console.log(
-          `Socket ${socket.id} authentication failed:`,
-          error.message
-        );
         socket.emit("authenticated", {
           success: false,
           message: "Invalid token.",
@@ -101,9 +90,6 @@ const initializeSocketHandlers = (io, prismaClient, RoleEnum, jwtSecret) => {
       // Token should ideally be sent once via "authenticate"
       const user = socket.user;
       if (!user) {
-        console.log(
-          `Socket ${socket.id} attempted to join document ${documentId} without prior authentication.`
-        );
         socket.emit("document-join-error", {
           message: "Authentication required before joining a document.",
         });
@@ -113,9 +99,6 @@ const initializeSocketHandlers = (io, prismaClient, RoleEnum, jwtSecret) => {
       // Check user permissions for the document
       const userRole = await getUserRoleOnDocument(documentId, user.userID);
       if (!userRole) {
-        console.log(
-          `User ${user.userID} not authorized to access document ${documentId}`
-        );
         socket.emit("document-join-error", {
           message:
             "Access Denied: You do not have permission to view this document.",
@@ -129,7 +112,6 @@ const initializeSocketHandlers = (io, prismaClient, RoleEnum, jwtSecret) => {
       socket.rooms.forEach((room) => {
         if (room !== socket.id) {
           // Don't leave the default personal room
-          console.log(`Socket ${socket.id} leaving previous room: ${room}`);
           socket.leave(room);
           // Emit user:left-document for the old document (Day 9 concept)
           io.to(room).emit("user:left-document", {
@@ -141,9 +123,6 @@ const initializeSocketHandlers = (io, prismaClient, RoleEnum, jwtSecret) => {
       });
 
       socket.join(documentId);
-      console.log(
-        `Socket ${socket.id} (User: ${user.userID}) joined document room: ${documentId}`
-      );
 
       // Fetch and send initial document content to the joining client
       try {
@@ -157,9 +136,6 @@ const initializeSocketHandlers = (io, prismaClient, RoleEnum, jwtSecret) => {
             content: document.content,
             userRole: userRole,
           });
-          console.log(
-            `Sent initial content for document ${documentId} to ${socket.id}`
-          );
           // Inform others in the room about the new user joining (Day 9 concept)
           io.to(documentId).emit("user:joined-document", {
             // Use io.to() to include the sender for presence updates, or socket.to() to exclude
@@ -197,9 +173,6 @@ const initializeSocketHandlers = (io, prismaClient, RoleEnum, jwtSecret) => {
 
       const user = socket.user;
       if (!user) {
-        console.log(
-          `Unauthenticated socket ${socket.id} tried to change document ${documentId}.`
-        );
         return;
       }
 
@@ -266,9 +239,6 @@ const initializeSocketHandlers = (io, prismaClient, RoleEnum, jwtSecret) => {
         return;
       }
       socket.leave(documentId);
-      console.log(
-        `Socket ${socket.id} (User: ${user.userID}) left document room: ${documentId}`
-      );
       // Inform others in the room about the user leaving
       io.to(documentId).emit("user:left-document", {
         documentId: documentId,
@@ -281,7 +251,6 @@ const initializeSocketHandlers = (io, prismaClient, RoleEnum, jwtSecret) => {
 
     // --- Handle Disconnect ---
     socket.on("disconnect", () => {
-      console.log(`Socket disconnected: ${socket.id}`);
       const user = socket.user;
       if (user) {
         // Find which document rooms this user was in and emit a "user:left-document" event
@@ -291,9 +260,6 @@ const initializeSocketHandlers = (io, prismaClient, RoleEnum, jwtSecret) => {
             // 'room' here would be the documentId
             // Ensure this is a document room and not some other internal room
             // A more robust way might be to keep a map of `socket.id -> activeDocumentId`
-            console.log(
-              `User ${user.userID} leaving document ${room} on disconnect`
-            );
             io.to(room).emit("user:left-document", {
               documentId: room,
               userId: user.userID,
