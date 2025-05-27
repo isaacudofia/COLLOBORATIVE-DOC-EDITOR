@@ -89,51 +89,67 @@ export const getAllDocuments = async (req, res) => {
 };
 
 //CONTROLLER TO A SPECIFIC DOCUMENT
+// Update the getDocument controller
 export const getDocument = async (req, res) => {
   const { id } = req.params;
   try {
-    //CHECKING IF DOCUMENT BY THE IDENTIFIER EXIST IN THE DATABASE
-    const findDocument = await prisma.document.findUnique({
+    const document = await prisma.document.findUnique({
       where: { id },
       include: {
-        owner: { select: { id: true, name: true, email: true } },
-        collaborators: {
-          where: { userId: req.user.userID }, // Only include the current user's collaboration if exists
-          select: { role: true },
+        owner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
         },
-      }, // Optionally include owner details
+        collaborators: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    if (!findDocument)
-      return res
-        .status(400)
-        .json({ message: "No document by such identifier" });
-
-    // Determine the user's role
-    let userRole = null;
-    if (findDocument.ownerId === req.user.userID) {
-      userRole = Role.OWNER;
-    } else if (findDocument.collaborators.length > 0) {
-      userRole = findDocument.collaborators[0].role; // Get the role from the specific collaboration
-    }
-
-    // If user is neither owner nor collaborator, deny access
-    if (!userRole) {
-      return res.status(403).json({
-        message: "Access Denied: You are not authorized to view this document.",
+    if (!document) {
+      return res.status(404).json({
+        message: "Document not found",
       });
     }
 
-    // Attach the user's role to the document object
-    const documentWithRole = { ...findDocument, userRole };
+    // Check access rights
+    const isOwner = document.ownerId === req.user.userID;
+    const collaboration = document.collaborators.find(
+      (c) => c.user.id === req.user.userID
+    );
 
-    res.status(203).json({
-      message: "get document successfully",
-      data: documentWithRole,
+    if (!isOwner && !collaboration) {
+      return res.status(403).json({
+        message:
+          "Access Denied: You don't have permission to view this document",
+      });
+    }
+
+    // Add user's role to response
+    const userRole = isOwner ? "OWNER" : collaboration?.role;
+
+    return res.status(200).json({
+      message: "Document retrieved successfully",
+      document: {
+        ...document,
+        userRole,
+      },
     });
   } catch (error) {
-    res.status(500).json({
-      message: "Error occured while updating document",
+    console.error("Get document error:", error);
+    return res.status(500).json({
+      message: "Error occurred while fetching document",
       error: error.message,
     });
   }
@@ -228,53 +244,44 @@ export const updateDocument = async (req, res) => {
 };
 
 //CONTROLLER TO DELETE DOCUMENT THAT EXIST ALREADY
+// Update the deleteDocument controller
 export const deleteDocument = async (req, res) => {
   const { id } = req.params;
   try {
-    //CHECKING IF DOCUMENT BY THE IDENTIFIER EXIST IN THE DATABASE
     const findDocument = await prisma.document.findUnique({
       where: { id },
-      include: {
-        collaborators: {
-          where: { userId: req.user.userID },
-          select: { role: true },
-        },
-      },
     });
 
-    if (!findDocument)
-      return res
-        .status(400)
-        .json({ message: "No such document by identifier for deleting" });
-
-    // Authorization check: Only OWNER can delete
-    let userRole = null;
-    if (findDocument.ownerId === req.user.userID) {
-      userRole = Role.OWNER;
-    } else if (findDocument.collaborators.length > 0) {
-      userRole = findDocument.collaborators[0].role;
-    }
-
-    if (userRole !== Role.OWNER) {
-      return res.status(403).json({
-        message: "Access Denied: Only the owner can delete this document.",
+    if (!findDocument) {
+      return res.status(404).json({
+        message: "Document not found",
       });
     }
 
-    // Before deleting the document, delete all associated collaborations
+    // Check if user is owner
+    if (findDocument.ownerId !== req.user.userID) {
+      return res.status(403).json({
+        message: "Access Denied: Only the owner can delete this document",
+      });
+    }
+
+    // Delete all collaborations first
     await prisma.collaboration.deleteMany({
       where: { documentId: id },
     });
 
-    const deletedDocument = await prisma.document.delete({ where: { id } });
+    // Then delete the document
+    await prisma.document.delete({
+      where: { id },
+    });
 
-    res.status(204).json({
-      message: "Deleted document successfully",
-      deleted: deletedDocument,
-    }); // 204 No Content for successful deletion. So no content will show
+    return res.status(200).json({
+      message: "Document deleted successfully",
+    });
   } catch (error) {
-    res.status(500).json({
-      message: "Error occured while deleting document",
+    console.error("Delete document error:", error);
+    return res.status(500).json({
+      message: "Error occurred while deleting document",
       error: error.message,
     });
   }
