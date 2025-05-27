@@ -43,10 +43,6 @@ app.use("/api/documents", collaborationRoutes);
 // ERROR HANDLER MIDDLEWARER
 app.use(errorHandler);
 
-// app.listen(process.env.PORT, () =>
-//   console.log(`Server: Server spinning on port ${process.env.PORT}...`)
-// );
-
 // *** Initialize Socket.IO Connection Handling ***
 // Pass the io instance, prisma client, and JWT secret to the handler function
 initializeSocketHandlers(io, prisma, Role, process.env.JWT_PRIVATE_KEY); // Initialize socket handlers
@@ -54,9 +50,7 @@ initializeSocketHandlers(io, prisma, Role, process.env.JWT_PRIVATE_KEY); // Init
 // Start the server (use the http server, not just the Express app)
 server.listen(process.env.PORT, () => {
   // IMPORTANT: The HTTP server listens
-  console.log(`Server is running on port ${process.env.PORT}`);
-  console.log(`HTTP/API Access: http://localhost:${process.env.PORT}`);
-  console.log(`WebSocket ready.`);
+  // Server is now running
 });
 
 // Add a process exit handler for Prisma client disconnect

@@ -216,29 +216,7 @@
       .empty-state-icon {
         font-size: 48px;
         margin-bottom: 10px;
-      }
-
-      .message {
-        padding: 10px;
-        margin-top: 10px;
-        border-radius: 4px;
-        font-weight: bold;
-      }
-
-      .message.success {
-        background-color: #d4edda;
-        color: #155724;
-      }
-
-      .message.error {
-        background-color: #f8d7da;
-        color: #721c24;
-      }
-
-      .message.info {
-        background-color: #d1ecf1;
-        color: #0c5460;
-      }
+      } /* Message styles removed - no longer needed */
 
       /* Modern Document Styling */
       .document-editor-container {
@@ -1025,7 +1003,6 @@
       const authEmailInput = document.getElementById("authEmail");
       const authPasswordInput = document.getElementById("authPassword");
       const authSubmitBtn = document.getElementById("authSubmitBtn");
-      const authMessage = document.getElementById("authMessage");
       const toggleAuthModeBtn = document.getElementById("toggleAuthMode");
       const logoutBtn = document.getElementById("logoutBtn");
 
@@ -1051,8 +1028,6 @@
         document.getElementById("collaboratorRole");
       const addCollaboratorBtn = document.getElementById("addCollaboratorBtn");
       const addCollabMessage = document.getElementById("addCollabMessage");
-      const debugAuth = document.getElementById("debugAuth");
-      const debugDocs = document.getElementById("debugDocs");
 
       // State variables
       let currentDocumentId = null;
@@ -1074,21 +1049,13 @@
           targetSection.classList.remove("hidden-section");
           targetSection.classList.add("active-section");
         }
-      }
-
-      function displayMessage(element, message, type = "info") {
-        if (!element) return;
-        element.textContent = message;
-        element.className = `message ${type}`;
-        element.style.display = message ? "block" : "none";
-      }
+      } // Utility function removed: displayMessage - no longer needed
       function getCurrentUserIdFromToken() {
         if (!authToken) return null;
         try {
           const payload = JSON.parse(atob(authToken.split(".")[1]));
           return payload.userID;
         } catch (error) {
-          console.error("Error parsing token:", error);
           return null;
         }
       }
@@ -1154,14 +1121,12 @@
         // Clear any existing messages
         authForm.reset();
       }
-
       function logout() {
         authToken = null;
         isAuthenticated = false;
         logoutBtn.style.display = "none";
         authForm.reset();
         showSection("authSection");
-        displayMessage(authMessage, "Logged out successfully.", "success");
 
         if (currentDocumentId && socket) {
           socket.emit("leave-document", { documentId: currentDocumentId });
@@ -1646,7 +1611,6 @@
               documentId: currentDocumentId,
               content: content,
             });
-            console.log(`Auto-saving document ${currentDocumentId} content...`);
           }, 1000);
         }
       });
@@ -1680,8 +1644,10 @@
             alert(data.message || "Failed to save document.");
           }
         } catch (error) {
-          console.error("Save document error:", error);
-          alert("Network error saving document.");
+          showModal("alertModal", {
+            title: "Error",
+            message: "Network error saving document.",
+          });
         }
       }); // Initialize
       showSection("authSection");

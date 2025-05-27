@@ -46,7 +46,7 @@ const debounceSaveDocument = (documentId, content) => {
         data: { content: content, updatedAt: new Date() },
       });
     } catch (error) {
-      console.error(`Error saving document ${documentId}:`, error);
+      // Error saving will be handled by auto-retry on next content change
     } finally {
       documentSaveQueue.delete(documentId); // Clear from queue after saving
     }
@@ -150,10 +150,6 @@ const initializeSocketHandlers = (io, prismaClient, RoleEnum, jwtSecret) => {
           });
         }
       } catch (error) {
-        console.error(
-          `Error fetching document ${documentId} for socket ${socket.id}:`,
-          error
-        );
         socket.emit("document-join-error", {
           message: "Error loading document.",
         });
@@ -163,36 +159,22 @@ const initializeSocketHandlers = (io, prismaClient, RoleEnum, jwtSecret) => {
     // --- Real-time Document Content Change ---
     socket.on("document-content-change", async (data) => {
       const { documentId, content } = data;
-
       if (!documentId || content === undefined || content === null) {
-        console.warn(
-          `Invalid document-content-change event from ${socket.id}: Missing documentId or content.`
-        );
         return;
       }
 
       const user = socket.user;
       if (!user) {
         return;
-      }
-
-      // Ensure the socket is actually in the room for the document they are trying to change
+      } // Ensure the socket is actually in the room for the document they are trying to change
       if (!socket.rooms.has(documentId)) {
-        console.warn(
-          `Socket ${socket.id} tried to change document ${documentId} but is not in the room.`
-        );
         socket.emit("permission-denied", {
           message: "You are not an active collaborator in this document.",
         });
         return;
-      }
-
-      // Check permissions for content modification (OWNER or EDITOR)
+      } // Check permissions for content modification (OWNER or EDITOR)
       const userRole = await getUserRoleOnDocument(documentId, user.userID);
       if (userRole !== RoleEnum.OWNER && userRole !== RoleEnum.EDITOR) {
-        console.warn(
-          `User ${user.userID} (Role: ${userRole}) attempted to modify document ${documentId} without edit permissions.`
-        );
         socket.emit("permission-denied", {
           message: "You do not have permission to edit this document.",
         });
