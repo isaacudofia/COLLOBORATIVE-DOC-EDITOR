@@ -132,41 +132,114 @@
       }
 
       #documentList {
-        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
         padding: 0;
       }
 
       #documentList li {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+        border: 1px solid #e9ecef;
         display: flex;
-        justify-content: space-between;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      #documentList li:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .document-title {
+        font-size: 18px;
+        font-weight: 500;
+        color: #2c3e50;
+        margin: 0;
+      }
+
+      .document-meta {
+        display: flex;
         align-items: center;
-        padding: 10px;
-        margin-bottom: 8px;
-        background-color: #f8f9fa;
-        border-radius: 4px;
-        border: 1px solid #dee2e6;
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-top: 5px;
       }
 
       .document-actions {
         display: flex;
         gap: 10px;
+        margin-top: auto;
       }
 
-      #documentList li button {
-        background: #28a745;
-        margin-left: 10px;
-        padding: 5px 10px;
-        font-size: 0.9rem;
+      .document-actions button {
+        flex: 1;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
       }
 
-      #documentList li button.delete-doc-btn {
+      .open-doc-btn {
+        background: #28a745 !important;
+        color: white !important;
+      }
+
+      .open-doc-btn:hover {
+        background: #218838 !important;
+      }
+
+      .delete-doc-btn {
         background: #dc3545 !important;
         color: white !important;
-        margin-left: 10px;
       }
 
-      #documentList li button.delete-doc-btn:hover {
+      .delete-doc-btn:hover {
         background: #c82333 !important;
+      }
+
+      .document-info {
+        flex: 1;
+      }
+
+      .document-meta {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-top: 5px;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin: 20px 0;
+      }
+
+      .empty-state h3 {
+        color: #343a40;
+        margin: 10px 0;
+      }
+
+      .empty-state p {
+        color: #6c757d;
+        margin-bottom: 20px;
+      }
+
+      .empty-state button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .empty-state-icon {
+        font-size: 48px;
+        margin-bottom: 10px;
       }
 
       .message {
@@ -191,12 +264,121 @@
         color: #0c5460;
       }
 
+      /* Modern Document Styling */
+      .document-editor-container {
+        display: flex;
+        gap: 20px;
+        height: calc(100vh - 200px);
+      }
+
+      .editor-main {
+        flex: 3;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .editor-sidebar {
+        flex: 1;
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
       #documentContent {
-        width: 100%;
-        min-height: 300px;
-        font-family: "Courier New", monospace;
+        flex: 1;
+        padding: 20px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        font-family: "Source Code Pro", monospace;
+        font-size: 16px;
+        line-height: 1.6;
+        resize: none;
+      }
+
+      /* Modal Styles */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+
+      .modal {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        min-width: 400px;
+        max-width: 600px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .modal-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 0;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0;
+        color: #666;
+      }
+
+      .modal-body {
+        margin-bottom: 20px;
+      }
+
+      .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      /* Button Styles */
+      .btn {
+        padding: 8px 16px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
         font-size: 14px;
-        resize: vertical;
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background: #007bff;
+        color: white;
+      }
+
+      .btn-secondary {
+        background: #6c757d;
+        color: white;
+      }
+
+      .btn-danger {
+        background: #dc3545;
+        color: white;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       #collaboratorsDisplay {
@@ -334,6 +516,207 @@
           transform: translateY(-20px);
         }
       }
+
+      .editor-actions {
+        display: flex;
+        justify-content: space-between;
+        padding: 20px 0;
+        margin-top: 20px;
+        border-top: 1px solid #dee2e6;
+      }
+
+      .editor-actions button {
+        padding: 12px 24px;
+        font-weight: 500;
+        min-width: 150px;
+        transition: all 0.2s ease;
+      }
+
+      .editor-actions .btn-primary {
+        background: #007bff;
+        color: white;
+      }
+
+      .editor-actions .btn-primary:hover {
+        background: #0056b3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .editor-actions .btn-secondary {
+        background: #6c757d;
+        color: white;
+      }
+
+      .editor-actions .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .auth-container {
+        max-width: 400px;
+        margin: 40px auto;
+        padding: 30px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .auth-container h2 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        font-size: 24px;
+      }
+
+      .auth-form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .auth-form input {
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 15px;
+        transition: border-color 0.3s ease;
+      }
+
+      .auth-form input:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+      }
+
+      .auth-form button {
+        background: #007bff;
+        color: white;
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .auth-form button:hover {
+        background: #0056b3;
+        transform: translateY(-1px);
+      }
+
+      .auth-form button:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .auth-toggle {
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .auth-toggle a {
+        color: #007bff;
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.3s ease;
+      }
+
+      .auth-toggle a:hover {
+        color: #0056b3;
+        text-decoration: underline;
+      }
+
+      .auth-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 6px;
+        background: #28a745;
+        color: white;
+        font-size: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: none;
+        animation: slideIn 0.5s ease forwards;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      .documents-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      .documents-header h2 {
+        font-size: 28px;
+        color: #2c3e50;
+        margin: 0;
+      }
+
+      #newDocumentBtn {
+        background: #007bff;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+      }
+
+      #newDocumentBtn:hover {
+        background: #0056b3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .no-documents {
+        text-align: center;
+        padding: 40px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        color: #6c757d;
+      }
+
+      .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        padding: 40px;
+      }
+
+      .empty-state-icon {
+        font-size: 48px;
+        color: #dee2e6;
+      }
+
+      .owner-badge {
+        background: #28a745;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        margin-left: 8px;
+      }
     </style>
   </head>
   <body>
@@ -353,81 +736,171 @@
 
     <main>
       <section id="authSection" class="active-section">
-        <h2>Login / Register</h2>
-        <form id="authForm">
-          <input
-            type="text"
-            id="authName"
-            placeholder="Name (for registration)"
-            style="display: none"
-          />
-          <input type="email" id="authEmail" placeholder="Email" required />
-          <input
-            type="password"
-            id="authPassword"
-            placeholder="Password"
-            required
-          />
-          <button type="submit" id="authSubmitBtn">Login</button>
-        </form>
-        <p id="authMessage" class="message"></p>
-        <p>
-          <a href="#" id="toggleAuthMode"
-            >Don't have an account? Register here.</a
-          >
-        </p>
-        <div id="debugAuth" class="debug-info" style="display: none"></div>
+        <div class="auth-container">
+          <h2>Welcome Back</h2>
+          <form id="authForm" class="auth-form">
+            <input
+              type="text"
+              id="authName"
+              placeholder="Name"
+              style="display: none"
+            />
+            <input
+              type="email"
+              id="authEmail"
+              placeholder="Email address"
+              required
+            />
+            <input
+              type="password"
+              id="authPassword"
+              placeholder="Password"
+              required
+            />
+            <button type="submit" id="authSubmitBtn">Sign In</button>
+          </form>
+          <div class="auth-toggle">
+            <a href="#" id="toggleAuthMode"
+              >Don't have an account? Register here</a
+            >
+          </div>
+        </div>
       </section>
 
       <section id="documentListSection" class="hidden-section">
-        <h2>My Documents</h2>
-        <button id="newDocumentBtn">Create New Document</button>
-        <ul id="documentList"></ul>
-        <div id="debugDocs" class="debug-info" style="display: none"></div>
-      </section>
-
-      <section id="documentEditorSection" class="hidden-section">
-        <h2 id="editorTitle">Document Title</h2>
-        <div
-          id="readOnlyNotice"
-          class="readonly-indicator"
-          style="display: none"
-        >
-          You have view-only access to this document.
-        </div>
-        <textarea id="documentContent" rows="20" cols="80"></textarea>
-        <div id="collaboratorsDisplay">
-          Collaborators: <span id="activeCollaborators">Loading...</span>
-        </div>
-        <div style="margin: 10px 0">
-          <button id="saveDocumentBtn">Save Document</button>
-          <button id="backToListBtn" style="margin-left: 10px">
-            Back to List
+        <div class="documents-header">
+          <h2>My Documents</h2>
+          <button id="newDocumentBtn">
+            <i class="fas fa-plus"></i>
+            Create New Document
           </button>
         </div>
 
-        <div id="collaborationManagement">
-          <h3>Manage Collaborators</h3>
-          <div class="collaborators-list">
-            <h4>Current Collaborators:</h4>
-            <ul id="collaboratorsList"></ul>
+        <ul id="documentList">
+          <!-- Documents will be populated here -->
+        </ul>
+      </section>
+
+      <section id="documentEditorSection" class="hidden-section">
+        <div class="document-editor-container">
+          <div class="editor-main">
+            <h2 id="editorTitle">Document Title</h2>
+            <div
+              id="readOnlyNotice"
+              class="readonly-indicator"
+              style="display: none"
+            >
+              You have view-only access to this document.
+            </div>
+            <textarea
+              id="documentContent"
+              placeholder="Start typing your document content..."
+            ></textarea>
+            <div class="editor-actions">
+              <button class="btn btn-secondary" id="backToListBtn">
+                <i class="fas fa-arrow-left"></i> Back to List
+              </button>
+              <button class="btn btn-primary" id="saveDocumentBtn">
+                <i class="fas fa-save"></i> Save Document
+              </button>
+            </div>
           </div>
-          <div class="collaboration-form">
-            <input
-              type="email"
-              id="collaboratorEmail"
-              placeholder="Collaborator's email"
-            />
-            <select id="collaboratorRole">
-              <option value="EDITOR">Editor</option>
-              <option value="VIEWER">Viewer</option>
-            </select>
-            <button id="addCollaboratorBtn">Add Collaborator</button>
+
+          <div class="editor-sidebar">
+            <div id="collaboratorsDisplay">
+              <h3>Active Collaborators</h3>
+              <p id="activeCollaborators">No collaborators</p>
+            </div>
+
+            <div id="collaborationManagement">
+              <h3>Manage Collaborators</h3>
+              <div class="collaborators-list">
+                <ul id="collaboratorsList"></ul>
+              </div>
+              <div class="collaboration-form">
+                <input
+                  type="email"
+                  id="collaboratorEmail"
+                  placeholder="Collaborator's email"
+                />
+                <select id="collaboratorRole">
+                  <option value="EDITOR">Editor</option>
+                  <option value="VIEWER">Viewer</option>
+                </select>
+                <button class="btn btn-primary" id="addCollaboratorBtn">
+                  Add
+                </button>
+              </div>
+              <p id="addCollabMessage" class="message"></p>
+            </div>
           </div>
-          <p id="addCollabMessage" class="message"></p>
+        </div>
+
+        <div class="modal-overlay" id="documentModal">
+          <div class="modal">
+            <div class="modal-header">
+              <h3 class="modal-title">Document Details</h3>
+              <button class="modal-close" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+              <p id="modalMessage" class="message"></p>
+              <div>
+                <strong>Title:</strong>
+                <span id="documentTitleDisplay">Untitled Document</span>
+              </div>
+              <div>
+                <strong>Collaborators:</strong>
+                <span id="documentCollaboratorsDisplay">None</span>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary" id="closeModalBtn2">
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       </section>
     </main>
+
+    <!-- Modal Templates -->
+    <div id="confirmModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Confirm Action</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage"></p>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn btn-secondary"
+            onclick="closeModal('confirmModal')"
+          >
+            Cancel
+          </button>
+          <button class="btn btn-primary" id="confirmButton">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="alertModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Notice</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p id="alertMessage"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" onclick="closeModal('alertModal')">
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
 
     <script>
       const API_BASE_URL = "http://localhost:4000/api";
@@ -511,13 +984,10 @@
         const indicator = connectionStatus.querySelector(".status-indicator");
         const statusText = connectionStatus.querySelector("span:last-child");
 
-        if (connected) {
-          indicator.className = "status-indicator status-connected";
-          statusText.textContent = "Connected";
-        } else {
-          indicator.className = "status-indicator status-disconnected";
-          statusText.textContent = "Disconnected";
-        }
+        indicator.className = `status-indicator status-${
+          connected ? "connected" : "disconnected"
+        }`;
+        statusText.textContent = connected ? "Connected" : "Disconnected";
       }
 
       function getCurrentUserIdFromToken() {
@@ -629,82 +1099,63 @@
       // Authentication Logic
       async function authenticateUser(e) {
         e.preventDefault();
-        const email = authEmailInput.value;
-        const password = authPasswordInput.value;
-        const name = authNameInput.value;
-
-        let url = isRegisterMode
-          ? `${API_BASE_URL}/auth/register`
-          : `${API_BASE_URL}/auth/login`;
-        let body = isRegisterMode
-          ? { email, password, name }
-          : { email, password };
-
-        authSubmitBtn.disabled = true;
-        authSubmitBtn.textContent = isRegisterMode
-          ? "Registering..."
-          : "Logging in...";
-
-        debugLog(
-          "auth",
-          `Attempting ${isRegisterMode ? "register" : "login"} to ${url}`
-        );
 
         try {
+          const email = authEmailInput.value;
+          const password = authPasswordInput.value;
+          const name = authNameInput.value;
+
+          const url = `${API_BASE_URL}/auth/${
+            isRegisterMode ? "register" : "login"
+          }`;
+          const body = isRegisterMode
+            ? { email, password, name }
+            : { email, password };
+
           const response = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
           });
 
-          debugLog("auth", `Response status: ${response.status}`);
-
           const data = await response.json();
-          debugLog("auth", `Response data: ${JSON.stringify(data)}`);
 
-          if (response.ok) {
-            displayMessage(authMessage, data.message || "Success!", "success");
-            authToken = data.token;
-            isAuthenticated = true;
-            logoutBtn.style.display = "block";
-
-            // Initialize socket after successful authentication
-            initializeSocket();
-
-            // Wait a moment for socket to connect before loading documents
-            setTimeout(() => {
-              loadDocuments();
-            }, 1000);
-          } else {
-            displayMessage(
-              authMessage,
-              data.message || "Authentication failed.",
-              "error"
-            );
-            debugLog("auth", `Auth failed: ${data.message}`);
+          if (!response.ok) {
+            throw new Error(data.message || "Authentication failed");
           }
+
+          authToken = data.token;
+          isAuthenticated = true;
+          logoutBtn.style.display = "block";
+
+          initializeSocket();
+          loadDocuments();
         } catch (error) {
-          console.error("Auth error:", error);
-          debugLog("auth", `Network error: ${error.message}`);
-          displayMessage(
-            authMessage,
-            "Network error. Please try again.",
-            "error"
-          );
-        } finally {
-          authSubmitBtn.disabled = false;
-          authSubmitBtn.textContent = isRegisterMode ? "Register" : "Login";
+          showModal("alertModal", {
+            title: "Error",
+            message: error.message,
+          });
         }
       }
 
       function toggleAuthForm() {
         isRegisterMode = !isRegisterMode;
+        const container = document.querySelector(".auth-container");
+
+        container.querySelector("h2").textContent = isRegisterMode
+          ? "Create Account"
+          : "Welcome Back";
+
         authNameInput.style.display = isRegisterMode ? "block" : "none";
-        authSubmitBtn.textContent = isRegisterMode ? "Register" : "Login";
+        authSubmitBtn.textContent = isRegisterMode
+          ? "Create Account"
+          : "Sign In";
         toggleAuthModeBtn.textContent = isRegisterMode
-          ? "Already have an account? Login here."
-          : "Don't have an account? Register here.";
-        displayMessage(authMessage, "", "info");
+          ? "Already have an account? Sign in here"
+          : "Don't have an account? Register here";
+
+        // Clear any existing messages
+        authForm.reset();
       }
 
       function logout() {
@@ -741,45 +1192,76 @@
           const response = await fetch(`${API_BASE_URL}/documents`, {
             headers: {
               Authorization: `Bearer ${authToken}`,
-              "Content-Type": "application/json",
             },
           });
 
           const data = await response.json();
-          console.log("Documents data:", data); // Debug log
 
-          if (response.ok) {
-            documentListUl.innerHTML = "";
-            const documents = Array.isArray(data) ? data : data.data || [];
-
-            if (documents.length === 0) {
-              documentListUl.innerHTML =
-                "<li>No documents found. Create one!</li>";
-              return;
-            }
-
-            documents.forEach((doc) => {
-              const li = document.createElement("li");
-              li.innerHTML = `
-                <span>${doc.title || "Untitled Document"}</span>
-                <div class="document-actions">
-                  <button class="open-doc-btn" data-id="${doc.id}">Open</button>
-                  <button class="delete-doc-btn" data-id="${
-                    doc.id
-                  }">Delete</button>
-                </div>
-              `;
-              documentListUl.appendChild(li);
-            });
-          } else {
-            documentListUl.innerHTML = `<li class="message error">${
-              data.message || "Failed to load documents"
-            }</li>`;
+          if (!response.ok) {
+            throw new Error(data.message || "Failed to load documents");
           }
+
+          documentListUl.innerHTML = "";
+          const documents = data.documents || data || [];
+
+          if (documents.length === 0) {
+            documentListUl.innerHTML = `
+              <div class="empty-state">
+                <div class="empty-state-icon">📄</div>
+                <h3>No documents yet</h3>
+                <p>Create your first document to get started</p>
+                <button class="btn btn-primary" onclick="createNewDocument()">
+                  Create New Document
+                </button>
+              </div>`;
+            return;
+          }
+
+          documents.forEach((doc) => {
+            const li = document.createElement("li");
+            const date = new Date(
+              doc.updatedAt || doc.createdAt
+            ).toLocaleDateString();
+            const currentUserId = getCurrentUserIdFromToken();
+            const isOwner = doc.ownerId === currentUserId;
+
+            li.innerHTML = `
+              <div class="document-info">
+                <h3 class="document-title">${
+                  doc.title || "Untitled Document"
+                }</h3>
+                <div class="document-meta">
+                  Last modified: ${date}
+                  ${isOwner ? '<span class="owner-badge">Owner</span>' : ""}
+                </div>
+              </div>
+              <div class="document-actions">
+                <button class="btn open-doc-btn" data-id="${doc.id}">
+                  Open
+                </button>
+                ${
+                  isOwner
+                    ? `
+                  <button class="btn delete-doc-btn" data-id="${doc.id}">
+                    Delete
+                  </button>
+                `
+                    : ""
+                }
+              </div>
+            `;
+            documentListUl.appendChild(li);
+          });
         } catch (error) {
-          console.error("Load documents error:", error);
-          documentListUl.innerHTML =
-            '<li class="message error">Network error loading documents.</li>';
+          documentListUl.innerHTML = `
+            <div class="empty-state error">
+              <div class="empty-state-icon">⚠️</div>
+              <h3>Error loading documents</h3>
+              <p>${error.message}</p>
+              <button class="btn btn-primary" onclick="loadDocuments()">
+                Try Again
+              </button>
+            </div>`;
         }
       }
 
@@ -815,28 +1297,31 @@
       }
 
       async function deleteDocument(id) {
-        if (!confirm("Are you sure you want to delete this document?")) return;
+        showConfirm(
+          "Are you sure you want to delete this document? This action cannot be undone.",
+          async () => {
+            try {
+              const response = await fetch(`${API_BASE_URL}/documents/${id}`, {
+                method: "DELETE",
+                headers: {
+                  Authorization: `Bearer ${authToken}`,
+                  "Content-Type": "application/json",
+                },
+              });
 
-        try {
-          const response = await fetch(`${API_BASE_URL}/documents/${id}`, {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-              "Content-Type": "application/json",
-            },
-          });
-
-          if (response.ok) {
-            // Refresh the document list
-            loadDocuments();
-          } else {
-            const data = await response.json();
-            alert(data.message || "Failed to delete document");
-          }
-        } catch (error) {
-          console.error("Delete document error:", error);
-          alert("Network error while deleting document");
-        }
+              if (response.ok) {
+                loadDocuments();
+              } else {
+                const data = await response.json();
+                showAlert(data.message || "Failed to delete document");
+              }
+            } catch (error) {
+              console.error("Delete document error:", error);
+              showAlert("Network error while deleting document");
+            }
+          },
+          "Delete Document"
+        );
       }
 
       // Document Editor Logic
@@ -1154,6 +1639,54 @@
       // Initialize
       showSection("authSection");
       updateConnectionStatus(false);
+
+      // Modal functions
+      function showModal(modalId, options = {}) {
+        const modal = document.getElementById(modalId);
+        if (options.title) {
+          modal.querySelector(".modal-title").textContent = options.title;
+        }
+        if (options.message) {
+          modal.querySelector(
+            "#" + modalId.replace("Modal", "Message")
+          ).textContent = options.message;
+        }
+        if (options.onConfirm) {
+          const confirmBtn = modal.querySelector("#confirmButton");
+          confirmBtn.onclick = () => {
+            options.onConfirm();
+            closeModal(modalId);
+          };
+        }
+        modal.style.display = "flex";
+      }
+
+      function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.style.display = "none";
+      }
+
+      // Close modal when clicking outside
+      document.querySelectorAll(".modal-overlay").forEach((modal) => {
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) {
+            closeModal(modal.id);
+          }
+        });
+
+        modal.querySelector(".modal-close").addEventListener("click", () => {
+          closeModal(modal.id);
+        });
+      });
+
+      // Replace alert() calls with showModal()
+      function showAlert(message, title = "Notice") {
+        showModal("alertModal", { title, message });
+      }
+
+      function showConfirm(message, onConfirm, title = "Confirm Action") {
+        showModal("confirmModal", { title, message, onConfirm });
+      }
     </script>
   </body>
 </html>
