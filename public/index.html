@@ -397,38 +397,59 @@
         font-family: monospace;
         font-size: 12px;
       }
-
       .collaborators-list {
-        margin: 20px 0;
-        padding: 10px;
+        margin: 15px 0;
+        padding: 8px;
         background: #f8f9fa;
         border-radius: 4px;
+        font-size: 0.85rem;
       }
 
       .collaborators-list ul {
         list-style: none;
         padding: 0;
+        margin: 0;
       }
 
       .collaborators-list li {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 8px;
+        padding: 6px 8px;
         border-bottom: 1px solid #dee2e6;
       }
 
+      .collaborators-list li:last-child {
+        border-bottom: none;
+      }
+
+      .collaborator-email {
+        margin-right: 8px;
+      }
+
+      .collaborator-role {
+        color: #6c757d;
+        font-size: 0.8rem;
+      }
+
       .remove-collaborator-btn {
-        background-color: #dc3545;
-        color: white;
-        padding: 4px 8px;
-        border-radius: 4px;
+        background: none;
+        color: #dc3545;
+        padding: 4px;
+        border-radius: 50%;
         border: none;
         cursor: pointer;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        transition: all 0.2s ease;
       }
 
       .remove-collaborator-btn:hover {
-        background-color: #c82333;
+        background-color: #dc35451a;
       }
 
       .delete-doc-btn {
@@ -1400,14 +1421,19 @@
                 const isCurrentUser = collab.user.id === currentUserId;
                 const isOwner = collab.role === "OWNER";
                 return `
-                  <li>
-                    <span>${collab.user.email} (${collab.role})</span>
+                  <li>                    <div>
+                      <span class="collaborator-email">${
+                        collab.user.email
+                      }</span>
+                      <span class="collaborator-role">${collab.role}</span>
+                    </div>
                     ${
                       !isCurrentUser && !isOwner
                         ? `<button
                             class="remove-collaborator-btn"
                             onclick="removeCollaborator('${documentId}', '${collab.user.id}')"
-                          >Remove</button>`
+                            title="Remove collaborator"
+                          >×</button>`
                         : ""
                     }
                   </li>
