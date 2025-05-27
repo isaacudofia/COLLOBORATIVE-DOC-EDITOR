@@ -1051,8 +1051,6 @@
         document.getElementById("collaboratorRole");
       const addCollaboratorBtn = document.getElementById("addCollaboratorBtn");
       const addCollabMessage = document.getElementById("addCollabMessage");
-
-      const connectionStatus = document.getElementById("connectionStatus");
       const debugAuth = document.getElementById("debugAuth");
       const debugDocs = document.getElementById("debugDocs");
 
@@ -1084,17 +1082,6 @@
         element.className = `message ${type}`;
         element.style.display = message ? "block" : "none";
       }
-
-      function updateConnectionStatus(connected) {
-        const indicator = connectionStatus.querySelector(".status-indicator");
-        const statusText = connectionStatus.querySelector("span:last-child");
-
-        indicator.className = `status-indicator status-${
-          connected ? "connected" : "disconnected"
-        }`;
-        statusText.textContent = connected ? "Connected" : "Disconnected";
-      }
-
       function getCurrentUserIdFromToken() {
         if (!authToken) return null;
         try {
@@ -1569,17 +1556,8 @@
         if (socket) {
           socket.disconnect();
         }
-
         socket = io(API_BASE_URL, {
           auth: { token: authToken },
-        });
-
-        socket.on("connect", () => {
-          updateConnectionStatus(true);
-        });
-
-        socket.on("disconnect", () => {
-          updateConnectionStatus(false);
         });
 
         socket.on("document:content-updated", (data) => {
@@ -1705,11 +1683,8 @@
           console.error("Save document error:", error);
           alert("Network error saving document.");
         }
-      });
-
-      // Initialize
+      }); // Initialize
       showSection("authSection");
-      updateConnectionStatus(false);
 
       // Modal functions
       function showModal(modalId, options = {}) {
