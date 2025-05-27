@@ -18,7 +18,6 @@
       header {
         background: #333;
         color: #fff;
-        padding: 1rem 0;
         text-align: center;
         display: flex;
         justify-content: space-between;
@@ -28,6 +27,47 @@
 
       header h1 {
         margin: 0;
+        flex: 1;
+        text-align: left;
+      }
+
+      header nav {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      #connectionStatus {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.9rem;
+        padding: 5px 10px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+        min-width: 120px;
+      }
+
+      .status-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 5px;
+        flex-shrink: 0;
+      }
+
+      .status-connected {
+        background-color: #28a745;
+      }
+
+      .status-disconnected {
+        background-color: #dc3545;
+      }
+
+      #logoutBtn {
+        margin-left: 10px;
+        white-space: nowrap;
       }
 
       main {
@@ -262,20 +302,53 @@
       .delete-doc-btn:hover {
         background-color: #c82333 !important;
       }
+
+      .save-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #28a745;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        display: none;
+        animation: fadeInOut 2.5s ease-in-out;
+      }
+
+      @keyframes fadeInOut {
+        0% {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        15% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        85% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+      }
     </style>
   </head>
   <body>
     <header>
       <h1>Collaborative Editor</h1>
       <nav>
-        <span id="connectionStatus">
+        <div id="connectionStatus">
           <span class="status-indicator status-disconnected"></span>
-          Disconnected
-        </span>
-        <button id="logoutBtn" style="display: none; margin-left: 20px">
-          Logout
-        </button>
+          <span>Disconnected</span>
+        </div>
+        <button id="logoutBtn" style="display: none">Logout</button>
       </nav>
+      <div id="saveNotification" class="save-notification">
+        Document saved successfully!
+      </div>
     </header>
 
     <main>
@@ -436,14 +509,14 @@
 
       function updateConnectionStatus(connected) {
         const indicator = connectionStatus.querySelector(".status-indicator");
-        const text = connectionStatus.childNodes[1];
+        const statusText = connectionStatus.querySelector("span:last-child");
 
         if (connected) {
           indicator.className = "status-indicator status-connected";
-          text.textContent = " Connected";
+          statusText.textContent = "Connected";
         } else {
           indicator.className = "status-indicator status-disconnected";
-          text.textContent = " Disconnected";
+          statusText.textContent = "Disconnected";
         }
       }
 
@@ -842,10 +915,16 @@
           const data = await response.json();
           const collaboratorsList =
             document.getElementById("collaboratorsList");
+          const activeCollaborators = document.getElementById(
+            "activeCollaborators"
+          );
 
           if (response.ok) {
             const currentUserId = getCurrentUserIdFromToken();
-            collaboratorsList.innerHTML = data.collaborators
+            const collaborators = data.collaborators || [];
+
+            // Update collaborators list
+            collaboratorsList.innerHTML = collaborators
               .map((collab) => {
                 const isCurrentUser = collab.user.id === currentUserId;
                 const isOwner = collab.role === "OWNER";
@@ -855,22 +934,30 @@
                     ${
                       !isCurrentUser && !isOwner
                         ? `<button 
-                        class="remove-collaborator-btn" 
-                        onclick="removeCollaborator('${documentId}', '${collab.user.id}')"
-                      >Remove</button>`
+                            class="remove-collaborator-btn" 
+                            onclick="removeCollaborator('${documentId}', '${collab.user.id}')"
+                          >Remove</button>`
                         : ""
                     }
                   </li>
                 `;
               })
               .join("");
+
+            // Update active collaborators display
+            activeCollaborators.textContent =
+              collaborators.length > 0
+                ? collaborators.map((c) => c.user.email).join(", ")
+                : "No collaborators";
           } else {
             collaboratorsList.innerHTML = `<li class="error">${data.message}</li>`;
+            activeCollaborators.textContent = "Error loading collaborators";
           }
         } catch (error) {
           console.error("Fetch collaborators error:", error);
           collaboratorsList.innerHTML =
             '<li class="error">Failed to load collaborators</li>';
+          activeCollaborators.textContent = "Error loading collaborators";
         }
       }
 
@@ -1048,7 +1135,12 @@
           );
 
           if (response.ok) {
-            console.log("Document saved successfully");
+            const saveNotification =
+              document.getElementById("saveNotification");
+            saveNotification.style.display = "block";
+            setTimeout(() => {
+              saveNotification.style.display = "none";
+            }, 2500);
           } else {
             const data = await response.json();
             alert(data.message || "Failed to save document.");
