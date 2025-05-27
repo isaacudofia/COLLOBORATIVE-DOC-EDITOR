@@ -1431,22 +1431,23 @@
           activeCollaborators.textContent = "Error loading collaborators";
         }
       }
-
       async function addCollaborator() {
         const email = collaboratorEmailInput.value;
         const role = collaboratorRoleSelect.value;
 
         if (!email || !role) {
-          displayMessage(
-            addCollabMessage,
-            "Please enter email and select a role.",
-            "error"
-          );
+          showModal("alertModal", {
+            title: "Error",
+            message: "Please enter email and select a role.",
+          });
           return;
         }
 
         if (!currentDocumentId) {
-          displayMessage(addCollabMessage, "No document selected.", "error");
+          showModal("alertModal", {
+            title: "Error",
+            message: "No document selected.",
+          });
           return;
         }
 
@@ -1466,27 +1467,24 @@
           const data = await response.json();
 
           if (response.ok) {
-            displayMessage(
-              addCollabMessage,
-              data.message || "Collaborator added successfully!",
-              "success"
-            );
+            showModal("alertModal", {
+              title: "Success",
+              message: data.message || "Collaborator added successfully!",
+            });
             collaboratorEmailInput.value = "";
             fetchCollaborators(currentDocumentId);
           } else {
-            displayMessage(
-              addCollabMessage,
-              data.message || "Failed to add collaborator.",
-              "error"
-            );
+            showModal("alertModal", {
+              title: "Error",
+              message: data.message || "Failed to add collaborator.",
+            });
           }
         } catch (error) {
           console.error("Add collaborator error:", error);
-          displayMessage(
-            addCollabMessage,
-            "Network error. Could not add collaborator.",
-            "error"
-          );
+          showModal("alertModal", {
+            title: "Error",
+            message: "Network error. Could not add collaborator.",
+          });
         }
       }
 
