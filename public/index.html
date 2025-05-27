@@ -4,13 +4,223 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Collaborative Document Editor</title>
-    <link rel="stylesheet" href="./style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        margin: 0;
+        padding: 0;
+        background: #f4f4f4;
+        color: #333;
+      }
+
+      header {
+        background: #333;
+        color: #fff;
+        padding: 1rem 0;
+        text-align: center;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 2rem;
+      }
+
+      header h1 {
+        margin: 0;
+      }
+
+      main {
+        padding: 20px;
+        max-width: 900px;
+        margin: 20px auto;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      section {
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+
+      .hidden-section {
+        display: none;
+      }
+
+      .active-section {
+        display: block;
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      input[type="email"],
+      input[type="password"],
+      input[type="text"],
+      textarea,
+      select {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+
+      button {
+        padding: 10px 15px;
+        background: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+
+      button:hover {
+        background: #0056b3;
+      }
+
+      button:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+      }
+
+      #documentList {
+        list-style: none;
+        padding: 0;
+      }
+
+      #documentList li {
+        background: #eee;
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      #documentList li button {
+        background: #28a745;
+        margin-left: 10px;
+        padding: 5px 10px;
+        font-size: 0.9rem;
+      }
+
+      #documentList li button.delete-btn {
+        background: #dc3545;
+      }
+
+      .message {
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 4px;
+        font-weight: bold;
+      }
+
+      .message.success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+
+      .message.error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+
+      .message.info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+      }
+
+      #documentContent {
+        width: 100%;
+        min-height: 300px;
+        font-family: "Courier New", monospace;
+        font-size: 14px;
+        resize: vertical;
+      }
+
+      #collaboratorsDisplay {
+        margin: 10px 0;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+
+      #collaborationManagement {
+        margin-top: 20px;
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+      }
+
+      .collaboration-form {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .collaboration-form input,
+      .collaboration-form select {
+        flex: 1;
+        min-width: 150px;
+      }
+
+      .status-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 5px;
+      }
+
+      .status-connected {
+        background-color: #28a745;
+      }
+
+      .status-disconnected {
+        background-color: #dc3545;
+      }
+
+      .readonly-indicator {
+        background-color: #fff3cd;
+        border: 1px solid #ffeaa7;
+        padding: 8px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        color: #856404;
+      }
+
+      .debug-info {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 12px;
+      }
+    </style>
   </head>
   <body>
     <header>
       <h1>Collaborative Editor</h1>
       <nav>
-        <button id="logoutBtn" style="display: none">Logout</button>
+        <span id="connectionStatus">
+          <span class="status-indicator status-disconnected"></span>
+          Disconnected
+        </span>
+        <button id="logoutBtn" style="display: none; margin-left: 20px">
+          Logout
+        </button>
       </nav>
     </header>
 
@@ -39,26 +249,709 @@
             >Don't have an account? Register here.</a
           >
         </p>
+        <div id="debugAuth" class="debug-info" style="display: none"></div>
       </section>
 
       <section id="documentListSection" class="hidden-section">
         <h2>My Documents</h2>
         <button id="newDocumentBtn">Create New Document</button>
         <ul id="documentList"></ul>
+        <div id="debugDocs" class="debug-info" style="display: none"></div>
       </section>
 
       <section id="documentEditorSection" class="hidden-section">
         <h2 id="editorTitle">Document Title</h2>
+        <div
+          id="readOnlyNotice"
+          class="readonly-indicator"
+          style="display: none"
+        >
+          You have view-only access to this document.
+        </div>
         <textarea id="documentContent" rows="20" cols="80"></textarea>
         <div id="collaboratorsDisplay">
-          Collaborators: <span id="activeCollaborators"></span>
+          Collaborators: <span id="activeCollaborators">Loading...</span>
         </div>
-        <button id="saveDocumentBtn">Save Document</button>
-        <button id="backToListBtn">Back to List</button>
+        <div style="margin: 10px 0">
+          <button id="saveDocumentBtn">Save Document</button>
+          <button id="backToListBtn" style="margin-left: 10px">
+            Back to List
+          </button>
+        </div>
+
+        <div id="collaborationManagement">
+          <h3>Manage Collaborators</h3>
+          <div class="collaboration-form">
+            <input
+              type="email"
+              id="collaboratorEmail"
+              placeholder="Collaborator Email"
+            />
+            <select id="collaboratorRole">
+              <option value="EDITOR">Editor</option>
+              <option value="VIEWER">Viewer</option>
+            </select>
+            <button id="addCollaboratorBtn">Add Collaborator</button>
+          </div>
+          <p id="addCollabMessage" class="message"></p>
+        </div>
       </section>
     </main>
 
-    <script src="../src/socket/socketHandler.js"></script>
-    <script src="./script.js"></script>
+    <script>
+      const API_BASE_URL = "http://localhost:4000/api";
+      let socket = null;
+
+      // DOM Elements
+      const authSection = document.getElementById("authSection");
+      const documentListSection = document.getElementById(
+        "documentListSection"
+      );
+      const documentEditorSection = document.getElementById(
+        "documentEditorSection"
+      );
+
+      const authForm = document.getElementById("authForm");
+      const authNameInput = document.getElementById("authName");
+      const authEmailInput = document.getElementById("authEmail");
+      const authPasswordInput = document.getElementById("authPassword");
+      const authSubmitBtn = document.getElementById("authSubmitBtn");
+      const authMessage = document.getElementById("authMessage");
+      const toggleAuthModeBtn = document.getElementById("toggleAuthMode");
+      const logoutBtn = document.getElementById("logoutBtn");
+
+      const newDocumentBtn = document.getElementById("newDocumentBtn");
+      const documentListUl = document.getElementById("documentList");
+
+      const editorTitle = document.getElementById("editorTitle");
+      const documentContentTextarea =
+        document.getElementById("documentContent");
+      const collaboratorsDisplay = document.getElementById(
+        "activeCollaborators"
+      );
+      const saveDocumentBtn = document.getElementById("saveDocumentBtn");
+      const backToListBtn = document.getElementById("backToListBtn");
+      const readOnlyNotice = document.getElementById("readOnlyNotice");
+
+      const collaborationManagement = document.getElementById(
+        "collaborationManagement"
+      );
+      const collaboratorEmailInput =
+        document.getElementById("collaboratorEmail");
+      const collaboratorRoleSelect =
+        document.getElementById("collaboratorRole");
+      const addCollaboratorBtn = document.getElementById("addCollaboratorBtn");
+      const addCollabMessage = document.getElementById("addCollabMessage");
+
+      const connectionStatus = document.getElementById("connectionStatus");
+      const debugAuth = document.getElementById("debugAuth");
+      const debugDocs = document.getElementById("debugDocs");
+
+      // State variables
+      let currentDocumentId = null;
+      let isRegisterMode = false;
+      let currentUserRole = null;
+      let authToken = null;
+      let isAuthenticated = false;
+      let documentUpdateTimeout = null;
+
+      // Utility Functions
+      function showSection(sectionId) {
+        const sections = document.querySelectorAll("main section");
+        sections.forEach((section) => {
+          section.classList.remove("active-section");
+          section.classList.add("hidden-section");
+        });
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection) {
+          targetSection.classList.remove("hidden-section");
+          targetSection.classList.add("active-section");
+        }
+      }
+
+      function displayMessage(element, message, type = "info") {
+        if (!element) return;
+        element.textContent = message;
+        element.className = `message ${type}`;
+        element.style.display = message ? "block" : "none";
+      }
+
+      function updateConnectionStatus(connected) {
+        const indicator = connectionStatus.querySelector(".status-indicator");
+        const text = connectionStatus.childNodes[1];
+
+        if (connected) {
+          indicator.className = "status-indicator status-connected";
+          text.textContent = " Connected";
+        } else {
+          indicator.className = "status-indicator status-disconnected";
+          text.textContent = " Disconnected";
+        }
+      }
+
+      function getCurrentUserIdFromToken() {
+        if (!authToken) return null;
+        try {
+          const decoded = JSON.parse(atob(authToken.split(".")[1]));
+          return decoded.userID || decoded.userId || decoded.id;
+        } catch (e) {
+          console.error("Error decoding token:", e);
+          return null;
+        }
+      }
+
+      function debugLog(section, message) {
+        console.log(`[${section}]`, message);
+        const debugElement = section === "auth" ? debugAuth : debugDocs;
+        if (debugElement) {
+          debugElement.style.display = "block";
+          debugElement.innerHTML += `<div>[${new Date().toISOString()}] ${JSON.stringify(
+            message
+          )}</div>`;
+          debugElement.scrollTop = debugElement.scrollHeight;
+        }
+      }
+
+      // Socket initialization
+      function initializeSocket() {
+        if (socket) {
+          socket.disconnect();
+        }
+
+        socket = io("http://localhost:4000", {
+          forceNew: true,
+          transports: ["websocket", "polling"],
+        });
+
+        socket.on("connect", () => {
+          console.log("Connected to WebSocket server.");
+          updateConnectionStatus(true);
+
+          if (authToken) {
+            socket.emit("authenticate", { token: authToken });
+          }
+        });
+
+        socket.on("disconnect", () => {
+          console.log("Disconnected from WebSocket server.");
+          updateConnectionStatus(false);
+        });
+
+        socket.on("connect_error", (error) => {
+          console.error("Socket connection error:", error);
+          updateConnectionStatus(false);
+        });
+
+        socket.on("authenticated", (data) => {
+          if (data.success) {
+            console.log("Socket authenticated successfully");
+            debugLog("auth", "Socket authenticated");
+          } else {
+            console.error("Socket authentication failed:", data.message);
+            debugLog("auth", `Socket auth failed: ${data.message}`);
+          }
+        });
+
+        socket.on("document:loaded", (data) => {
+          if (data.documentId === currentDocumentId) {
+            documentContentTextarea.value = data.content;
+            currentUserRole = data.userRole;
+            applyRolePermissions();
+          }
+        });
+
+        socket.on("document:content-updated", (data) => {
+          if (data.documentId === currentDocumentId) {
+            const currentCursorPos = documentContentTextarea.selectionStart;
+            const currentScrollPos = documentContentTextarea.scrollTop;
+            documentContentTextarea.value = data.content;
+            documentContentTextarea.selectionStart = currentCursorPos;
+            documentContentTextarea.selectionEnd = currentCursorPos;
+            documentContentTextarea.scrollTop = currentScrollPos;
+          }
+        });
+
+        socket.on("user:joined-document", (data) => {
+          if (data.documentId === currentDocumentId) {
+            console.log(`${data.userName} joined the document.`);
+            fetchCollaborators(currentDocumentId);
+          }
+        });
+
+        socket.on("user:left-document", (data) => {
+          if (data.documentId === currentDocumentId) {
+            console.log(`${data.userName} left the document.`);
+            fetchCollaborators(currentDocumentId);
+          }
+        });
+
+        socket.on("document-join-error", (data) => {
+          alert(data.message);
+          showSection("documentListSection");
+        });
+
+        socket.on("permission-denied", (data) => {
+          alert(data.message);
+        });
+      }
+
+      // Authentication Logic
+      async function authenticateUser(e) {
+        e.preventDefault();
+        const email = authEmailInput.value;
+        const password = authPasswordInput.value;
+        const name = authNameInput.value;
+
+        let url = isRegisterMode
+          ? `${API_BASE_URL}/auth/register`
+          : `${API_BASE_URL}/auth/login`;
+        let body = isRegisterMode
+          ? { email, password, name }
+          : { email, password };
+
+        authSubmitBtn.disabled = true;
+        authSubmitBtn.textContent = isRegisterMode
+          ? "Registering..."
+          : "Logging in...";
+
+        debugLog(
+          "auth",
+          `Attempting ${isRegisterMode ? "register" : "login"} to ${url}`
+        );
+
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+
+          debugLog("auth", `Response status: ${response.status}`);
+
+          const data = await response.json();
+          debugLog("auth", `Response data: ${JSON.stringify(data)}`);
+
+          if (response.ok) {
+            displayMessage(authMessage, data.message || "Success!", "success");
+            authToken = data.token;
+            isAuthenticated = true;
+            logoutBtn.style.display = "block";
+
+            // Initialize socket after successful authentication
+            initializeSocket();
+
+            // Wait a moment for socket to connect before loading documents
+            setTimeout(() => {
+              loadDocuments();
+            }, 1000);
+          } else {
+            displayMessage(
+              authMessage,
+              data.message || "Authentication failed.",
+              "error"
+            );
+            debugLog("auth", `Auth failed: ${data.message}`);
+          }
+        } catch (error) {
+          console.error("Auth error:", error);
+          debugLog("auth", `Network error: ${error.message}`);
+          displayMessage(
+            authMessage,
+            "Network error. Please try again.",
+            "error"
+          );
+        } finally {
+          authSubmitBtn.disabled = false;
+          authSubmitBtn.textContent = isRegisterMode ? "Register" : "Login";
+        }
+      }
+
+      function toggleAuthForm() {
+        isRegisterMode = !isRegisterMode;
+        authNameInput.style.display = isRegisterMode ? "block" : "none";
+        authSubmitBtn.textContent = isRegisterMode ? "Register" : "Login";
+        toggleAuthModeBtn.textContent = isRegisterMode
+          ? "Already have an account? Login here."
+          : "Don't have an account? Register here.";
+        displayMessage(authMessage, "", "info");
+      }
+
+      function logout() {
+        authToken = null;
+        isAuthenticated = false;
+        logoutBtn.style.display = "none";
+        authForm.reset();
+        showSection("authSection");
+        displayMessage(authMessage, "Logged out successfully.", "success");
+
+        if (currentDocumentId && socket) {
+          socket.emit("leave-document", { documentId: currentDocumentId });
+          currentDocumentId = null;
+        }
+
+        documentListUl.innerHTML = "";
+        if (socket) {
+          socket.disconnect();
+          socket = null;
+        }
+      }
+
+      // Document List Logic
+      async function loadDocuments() {
+        if (!authToken) {
+          showSection("authSection");
+          return;
+        }
+
+        showSection("documentListSection");
+        documentListUl.innerHTML = "<li>Loading documents...</li>";
+
+        const currentUserId = getCurrentUserIdFromToken();
+        debugLog("docs", `Loading documents for user: ${currentUserId}`);
+        debugLog("docs", `Using token: ${authToken ? "Present" : "Missing"}`);
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/documents`, {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          debugLog("docs", `Documents API response status: ${response.status}`);
+
+          const data = await response.json();
+          debugLog("docs", `Documents API response: ${JSON.stringify(data)}`);
+
+          if (response.ok) {
+            documentListUl.innerHTML = "";
+            if (!data.documents || data.documents.length === 0) {
+              documentListUl.innerHTML =
+                "<li>No documents found. Create one!</li>";
+              return;
+            }
+
+            data.documents.forEach((doc) => {
+              const li = document.createElement("li");
+              const isOwner =
+                doc.owner &&
+                (doc.owner.id === currentUserId ||
+                  doc.ownerId === currentUserId);
+
+              li.innerHTML = `
+                <span>${doc.title || "Untitled Document"}</span>
+                <div>
+                  <button data-id="${doc.id}" class="open-doc-btn">Open</button>
+                  ${
+                    isOwner
+                      ? `<button data-id="${doc.id}" class="delete-doc-btn delete-btn">Delete</button>`
+                      : ""
+                  }
+                </div>
+              `;
+              documentListUl.appendChild(li);
+            });
+          } else {
+            const errorMsg = data.message || "Failed to load documents.";
+            documentListUl.innerHTML = `<li class="message error">${errorMsg}</li>`;
+            debugLog("docs", `Load documents failed: ${errorMsg}`);
+          }
+        } catch (error) {
+          console.error("Load documents error:", error);
+          debugLog("docs", `Network error: ${error.message}`);
+          documentListUl.innerHTML =
+            '<li class="message error">Network error loading documents.</li>';
+        }
+      }
+
+      async function createNewDocument() {
+        const title = prompt("Enter a title for the new document:");
+        if (!title) return;
+
+        debugLog("docs", `Creating document: ${title}`);
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/documents`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({ title, content: "" }),
+          });
+
+          const data = await response.json();
+          debugLog("docs", `Create document response: ${JSON.stringify(data)}`);
+
+          if (response.ok) {
+            loadDocuments();
+          } else {
+            alert(data.message || "Failed to create document.");
+          }
+        } catch (error) {
+          console.error("Create document error:", error);
+          debugLog("docs", `Create document error: ${error.message}`);
+          alert("Network error creating document.");
+        }
+      }
+
+      async function deleteDocument(id) {
+        if (!confirm("Are you sure you want to delete this document?")) return;
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/documents/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${authToken}` },
+          });
+
+          if (response.ok) {
+            loadDocuments();
+          } else {
+            const data = await response.json();
+            alert(data.message || "Failed to delete document.");
+          }
+        } catch (error) {
+          console.error("Delete document error:", error);
+          alert("Network error deleting document.");
+        }
+      }
+
+      // Document Editor Logic
+      function applyRolePermissions() {
+        documentContentTextarea.readOnly = false;
+        saveDocumentBtn.style.display = "block";
+        collaborationManagement.style.display = "block";
+        readOnlyNotice.style.display = "none";
+
+        if (currentUserRole === "VIEWER") {
+          documentContentTextarea.readOnly = true;
+          saveDocumentBtn.style.display = "none";
+          collaborationManagement.style.display = "none";
+          readOnlyNotice.style.display = "block";
+        } else if (currentUserRole === "EDITOR") {
+          documentContentTextarea.readOnly = false;
+          saveDocumentBtn.style.display = "block";
+          collaborationManagement.style.display = "none";
+        }
+      }
+
+      async function openDocument(documentId) {
+        if (!authToken) {
+          showSection("authSection");
+          return;
+        }
+
+        currentDocumentId = documentId;
+        showSection("documentEditorSection");
+
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/documents/${documentId}`,
+            {
+              headers: { Authorization: `Bearer ${authToken}` },
+            }
+          );
+          const data = await response.json();
+
+          if (response.ok) {
+            editorTitle.textContent = data.document.title;
+            documentContentTextarea.value = data.document.content;
+
+            const currentUserId = getCurrentUserIdFromToken();
+            const isOwner =
+              data.document.owner &&
+              (data.document.owner.id === currentUserId ||
+                data.document.ownerId === currentUserId);
+
+            if (isOwner) {
+              currentUserRole = "OWNER";
+            } else if (
+              data.document.collaborators &&
+              data.document.collaborators.length > 0
+            ) {
+              currentUserRole = data.document.collaborators[0].role;
+            } else {
+              currentUserRole = "VIEWER";
+            }
+
+            console.log("Current user role on document:", currentUserRole);
+            applyRolePermissions();
+
+            if (socket && socket.connected) {
+              socket.emit("join-document", { documentId });
+            }
+            fetchCollaborators(documentId);
+          } else {
+            alert(data.message || "Failed to load document.");
+            showSection("documentListSection");
+          }
+        } catch (error) {
+          console.error("Open document error:", error);
+          alert("Network error opening document.");
+          showSection("documentListSection");
+        }
+      }
+
+      async function fetchCollaborators(documentId) {
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/documents/${documentId}/collaborators`,
+            {
+              headers: { Authorization: `Bearer ${authToken}` },
+            }
+          );
+          const data = await response.json();
+
+          if (response.ok) {
+            const names = data.collaborators
+              .map((c) => `${c.user.name} (${c.role.toLowerCase()})`)
+              .join(", ");
+            collaboratorsDisplay.textContent =
+              names || "No other collaborators.";
+          } else {
+            console.error("Failed to fetch collaborators:", data.message);
+            collaboratorsDisplay.textContent = "Error fetching collaborators.";
+          }
+        } catch (error) {
+          console.error("Network error fetching collaborators:", error);
+          collaboratorsDisplay.textContent = "Error fetching collaborators.";
+        }
+      }
+
+      async function addCollaborator() {
+        const email = collaboratorEmailInput.value;
+        const role = collaboratorRoleSelect.value;
+
+        if (!email || !role) {
+          displayMessage(
+            addCollabMessage,
+            "Please enter email and select a role.",
+            "error"
+          );
+          return;
+        }
+
+        if (!currentDocumentId) {
+          displayMessage(addCollabMessage, "No document selected.", "error");
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/documents/${currentDocumentId}/collaborators`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${authToken}`,
+              },
+              body: JSON.stringify({ email, role }),
+            }
+          );
+
+          const data = await response.json();
+
+          if (response.ok) {
+            displayMessage(
+              addCollabMessage,
+              data.message || "Collaborator added successfully!",
+              "success"
+            );
+            collaboratorEmailInput.value = "";
+            fetchCollaborators(currentDocumentId);
+          } else {
+            displayMessage(
+              addCollabMessage,
+              data.message || "Failed to add collaborator.",
+              "error"
+            );
+          }
+        } catch (error) {
+          console.error("Add collaborator error:", error);
+          displayMessage(
+            addCollabMessage,
+            "Network error. Could not add collaborator.",
+            "error"
+          );
+        }
+      }
+
+      // Event Listeners
+      authForm.addEventListener("submit", authenticateUser);
+      toggleAuthModeBtn.addEventListener("click", toggleAuthForm);
+      logoutBtn.addEventListener("click", logout);
+      newDocumentBtn.addEventListener("click", createNewDocument);
+
+      backToListBtn.addEventListener("click", () => {
+        if (currentDocumentId && socket) {
+          socket.emit("leave-document", { documentId: currentDocumentId });
+          currentDocumentId = null;
+        }
+        loadDocuments();
+      });
+
+      documentListUl.addEventListener("click", (e) => {
+        if (e.target.classList.contains("open-doc-btn")) {
+          openDocument(e.target.dataset.id);
+        } else if (e.target.classList.contains("delete-doc-btn")) {
+          deleteDocument(e.target.dataset.id);
+        }
+      });
+
+      addCollaboratorBtn.addEventListener("click", addCollaborator);
+
+      // Auto-save/real-time content update on input
+      documentContentTextarea.addEventListener("input", () => {
+        if (
+          socket &&
+          socket.connected &&
+          currentDocumentId &&
+          !documentContentTextarea.readOnly
+        ) {
+          clearTimeout(documentUpdateTimeout);
+          documentUpdateTimeout = setTimeout(() => {
+            const content = documentContentTextarea.value;
+            socket.emit("document-content-change", {
+              documentId: currentDocumentId,
+              content: content,
+            });
+            console.log(`Auto-saving document ${currentDocumentId} content...`);
+          }, 1000);
+        }
+      });
+
+      // Save button handler
+      saveDocumentBtn.addEventListener("click", async () => {
+        if (!currentDocumentId || documentContentTextarea.readOnly) return;
+
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/documents/${currentDocumentId}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${authToken}`,
+              },
+              body: JSON.stringify({ content: documentContentTextarea.value }),
+            }
+          );
+
+          if (response.ok) {
+            console.log("Document saved successfully");
+          } else {
+            const data = await response.json();
+            alert(data.message || "Failed to save document.");
+          }
+        } catch (error) {
+          console.error("Save document error:", error);
+          alert("Network error saving document.");
+        }
+      });
+
+      // Initialize
+      showSection("authSection");
+      updateConnectionStatus(false);
+    </script>
   </body>
 </html>

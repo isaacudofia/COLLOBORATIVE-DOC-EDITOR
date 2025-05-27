@@ -29,7 +29,10 @@ export const getAllDocuments = async (req, res) => {
         userId: req.user.userID,
         NOT: { document: { ownerId: req.user.userID } },
       },
-      include: {
+      // Corrected: Select the role directly from the collaboration,
+      // and include the document relation.
+      select: {
+        role: true, // Select the 'role' field directly from the Collaboration model
         document: {
           select: {
             id: true,
@@ -45,7 +48,6 @@ export const getAllDocuments = async (req, res) => {
             },
           },
         },
-        role: true,
       },
       orderBy: { document: { updatedAt: "desc" } },
     });
