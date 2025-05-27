@@ -1202,7 +1202,8 @@
           }
 
           documentListUl.innerHTML = "";
-          const documents = data.documents || data || [];
+          // Ensure we're accessing the correct property and it's an array
+          const documents = Array.isArray(data) ? data : data.documents || [];
 
           if (documents.length === 0) {
             documentListUl.innerHTML = `
@@ -1241,11 +1242,9 @@
                 </button>
                 ${
                   isOwner
-                    ? `
-                  <button class="btn delete-doc-btn" data-id="${doc.id}">
-                    Delete
-                  </button>
-                `
+                    ? `<button class="btn delete-doc-btn" data-id="${doc.id}">
+                      Delete
+                     </button>`
                     : ""
                 }
               </div>
@@ -1253,6 +1252,7 @@
             documentListUl.appendChild(li);
           });
         } catch (error) {
+          console.error("Load documents error:", error);
           documentListUl.innerHTML = `
             <div class="empty-state error">
               <div class="empty-state-icon">⚠️</div>
