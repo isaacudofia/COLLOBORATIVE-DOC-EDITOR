@@ -37,369 +37,403 @@
         background-color: #fff3cd;
         color: #856404;
       }
-      input,
-      textarea,
-      button {
-        margin: 5px;
-        padding: 8px;
-        border: 1px solid #ddd;
+      button,
+      input[type="text"],
+      textarea {
+        padding: 8px 12px;
+        margin: 5px 0;
         border-radius: 4px;
+        border: 1px solid #ddd;
+        font-size: 16px;
       }
       button {
         background-color: #007bff;
         color: white;
         cursor: pointer;
+        border: none;
       }
       button:hover {
-        background-color: #0056b3;
+        opacity: 0.9;
       }
-      button:disabled {
-        background-color: #6c757d;
-        cursor: not-allowed;
-      }
-      .log {
-        background-color: #f8f9fa;
+      #log {
+        background-color: #e9e9e9;
         padding: 10px;
         border-radius: 4px;
-        max-height: 300px;
-        overflow-y: auto;
-        font-family: monospace;
-        font-size: 12px;
+        max-height: 200px;
+        overflow-y: scroll;
         margin-top: 10px;
       }
-      .grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
+      .input-group {
+        margin-bottom: 10px;
       }
-      @media (max-width: 768px) {
-        .grid {
-          grid-template-columns: 1fr;
-        }
+      .input-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      #documentContentTextarea {
+        width: 100%;
+        min-height: 300px;
+        box-sizing: border-box;
       }
     </style>
   </head>
   <body>
-    <h1>Socket.IO Collaborative Editor Test Client</h1>
+    <h1>Collaborative Document Editor - Socket.IO Test Client</h1>
 
-    <div class="grid">
-      <div class="container">
-        <h2>Connection & Authentication</h2>
-
-        <div>
-          <label>Server URL:</label><br />
-          <input
-            type="text"
-            id="serverUrl"
-            value="http://localhost:4000"
-            style="width: 100%"
-          />
-        </div>
-
-        <div>
-          <label>JWT Token:</label><br />
-          <textarea
-            id="jwtToken"
-            placeholder="Paste your JWT token here..."
-            style="width: 100%; height: 80px"
-          ></textarea>
-        </div>
-
-        <div>
-          <button id="connectBtn">Connect Socket</button>
-          <button id="disconnectBtn" disabled>Disconnect Socket</button>
-          <button id="testBtn" disabled>Test Connection</button>
-        </div>
-
-        <div id="connectionStatus" class="status disconnected">
-          Status: Disconnected
-        </div>
+    <div class="container">
+      <h2>Connection Status</h2>
+      <div id="connectionStatus" class="status disconnected">Disconnected</div>
+      <div class="input-group">
+        <label for="serverUrl">Server URL:</label>
+        <input
+          type="text"
+          id="serverUrl"
+          value="http://localhost:5000"
+          placeholder="e.g., http://localhost:5000"
+          size="40"
+        />
+        <button id="connectBtn">Connect</button>
+        <button id="disconnectBtn">Disconnect</button>
       </div>
-
-      <div class="container">
-        <h2>Document Access</h2>
-
-        <div>
-          <label>Document ID:</label><br />
-          <input
-            type="text"
-            id="documentId"
-            placeholder="Enter document ID..."
-            style="width: 100%"
-          />
-        </div>
-
-        <div>
-          <button id="joinDocBtn" disabled>Join Document</button>
-          <button id="leaveDocBtn" disabled>Leave Document</button>
-        </div>
-
-        <div>Current Document: <strong id="currentDoc">None</strong></div>
+      <div class="input-group">
+        <label for="jwtToken">JWT Token (from /api/auth/login):</label>
+        <input
+          type="text"
+          id="jwtToken"
+          placeholder="Paste your JWT token here"
+          size="60"
+        />
+        <button id="authenticateBtn">Authenticate Socket</button>
       </div>
+    </div>
+
+    <div class="container">
+      <h2>Document Management</h2>
+      <div class="input-group">
+        <label for="documentIdInput">Document ID:</label>
+        <input
+          type="text"
+          id="documentIdInput"
+          placeholder="Enter a document ID"
+          size="40"
+        />
+        <button id="joinDocumentBtn">Join Document</button>
+        <button id="leaveDocumentBtn">Leave Document</button>
+      </div>
+      <p>
+        Currently Editing Document:
+        <span id="currentDocumentDisplay">None</span>
+      </p>
     </div>
 
     <div class="container">
       <h2>Document Content</h2>
-
       <textarea
-        id="documentContent"
-        placeholder="Document content will appear here..."
-        style="width: 100%; height: 150px"
+        id="documentContentTextarea"
+        placeholder="Start typing to collaborate..."
       ></textarea>
-
-      <div>
-        <button id="updateContentBtn" disabled>Update Content</button>
-        <button id="clearContentBtn">Clear Content</button>
-      </div>
+      <button id="updateContentBtn">Manual Update Content</button>
+      <button id="clearContentBtn">Clear Local Content</button>
     </div>
 
     <div class="container">
-      <h2>Event Log</h2>
-      <button onclick="clearLog()">Clear Log</button>
-      <div id="eventLog" class="log"></div>
+      <h2>Activity Log</h2>
+      <div id="log"></div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script>
-      let socket = null;
-      let currentDocumentId = null;
-
-      // DOM elements
       const serverUrlInput = document.getElementById("serverUrl");
       const jwtTokenInput = document.getElementById("jwtToken");
       const connectBtn = document.getElementById("connectBtn");
       const disconnectBtn = document.getElementById("disconnectBtn");
-      const testBtn = document.getElementById("testBtn");
-      const connectionStatus = document.getElementById("connectionStatus");
-
-      const documentIdInput = document.getElementById("documentId");
-      const joinDocBtn = document.getElementById("joinDocBtn");
-      const leaveDocBtn = document.getElementById("leaveDocBtn");
-      const currentDocDisplay = document.getElementById("currentDoc");
-
-      const documentContentTextarea =
-        document.getElementById("documentContent");
+      const authenticateBtn = document.getElementById("authenticateBtn");
+      const documentIdInput = document.getElementById("documentIdInput");
+      const joinDocumentBtn = document.getElementById("joinDocumentBtn");
+      const leaveDocumentBtn = document.getElementById("leaveDocumentBtn");
+      const currentDocumentDisplay = document.getElementById(
+        "currentDocumentDisplay"
+      );
+      const documentContentTextarea = document.getElementById(
+        "documentContentTextarea"
+      );
       const updateContentBtn = document.getElementById("updateContentBtn");
       const clearContentBtn = document.getElementById("clearContentBtn");
+      const logDiv = document.getElementById("log");
+      const connectionStatusDiv = document.getElementById("connectionStatus");
 
-      const eventLog = document.getElementById("eventLog");
+      let socket;
+      let currentDocumentId = null;
+      let authenticatedUserId = null; // To store the authenticated user's ID
 
-      // Logging function
       function log(message, type = "info") {
-        const timestamp = new Date().toLocaleTimeString();
-        const logEntry = document.createElement("div");
-        logEntry.style.color =
-          type === "error" ? "red" : type === "success" ? "green" : "black";
-        logEntry.textContent = `[${timestamp}] ${message}`;
-        eventLog.appendChild(logEntry);
-        eventLog.scrollTop = eventLog.scrollHeight;
-      }
-
-      function clearLog() {
-        eventLog.innerHTML = "";
+        const p = document.createElement("p");
+        p.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        if (type === "error") {
+          p.style.color = "red";
+        } else if (type === "success") {
+          p.style.color = "green";
+        }
+        logDiv.prepend(p); // Add to the top
+        if (logDiv.children.length > 50) {
+          logDiv.removeChild(logDiv.lastChild); // Keep log concise
+        }
       }
 
       function updateConnectionStatus(status, isConnected) {
-        connectionStatus.textContent = `Status: ${status}`;
-        connectionStatus.className = `status ${
+        connectionStatusDiv.textContent = status;
+        connectionStatusDiv.className = `status ${
           isConnected ? "connected" : "disconnected"
         }`;
-
-        // Enable/disable buttons based on connection status
-        connectBtn.disabled = isConnected;
-        disconnectBtn.disabled = !isConnected;
-        testBtn.disabled = !isConnected;
-        joinDocBtn.disabled = !isConnected;
-        leaveDocBtn.disabled = !isConnected || !currentDocumentId;
-        updateContentBtn.disabled = !isConnected || !currentDocumentId;
       }
 
-      // Connect socket
       connectBtn.addEventListener("click", () => {
-        const serverUrl = serverUrlInput.value.trim();
-        const token = jwtTokenInput.value.trim();
-
-        if (!serverUrl) {
-          log("Please enter server URL", "error");
+        const serverUrl = serverUrlInput.value;
+        if (socket && socket.connected) {
+          log("Socket already connected.", "info");
           return;
         }
 
-        if (!token) {
-          log("Please enter JWT token", "error");
-          return;
-        }
+        socket = io(serverUrl, {
+          transports: ["websocket", "polling"], // Prefer websocket
+        });
 
-        log(`Attempting to connect to ${serverUrl}...`);
+        socket.on("connect", () => {
+          updateConnectionStatus("Connected", true);
+          log(`Connected to Socket.IO server: ${socket.id}`, "success");
+        });
 
-        try {
-          socket = io(serverUrl, {
-            auth: {
-              token: token,
-            },
-            query: {
-              token: token,
-            },
-          });
+        socket.on("disconnect", (reason) => {
+          updateConnectionStatus("Disconnected", false);
+          log(`Disconnected from Socket.IO server: ${reason}`, "error");
+          currentDocumentId = null;
+          currentDocumentDisplay.textContent = "None";
+          documentContentTextarea.value = "";
+          authenticatedUserId = null; // Clear authenticated user ID on disconnect
+          authenticateBtn.disabled = false; // Re-enable auth button
+        });
 
-          // Connection event listeners
-          socket.on("connect", () => {
-            log("Successfully connected to server!", "success");
-            updateConnectionStatus("Connected", true);
-          });
+        socket.on("connect_error", (err) => {
+          log(`Connection Error: ${err.message}`, "error");
+          updateConnectionStatus("Connection Error", false);
+        });
 
-          socket.on("connected", (data) => {
-            log(`Server confirmed connection: ${data.message}`, "success");
-            log(`Authenticated as user ID: ${data.userId}`, "success");
-          });
-
-          socket.on("disconnect", (reason) => {
-            log(`Disconnected: ${reason}`, "error");
-            updateConnectionStatus("Disconnected", false);
-            currentDocumentId = null;
-            currentDocDisplay.textContent = "None";
-          });
-
-          socket.on("error", (error) => {
+        // Event for authentication response
+        socket.on("authenticated", (response) => {
+          if (response.success) {
             log(
-              `Socket error: ${
-                typeof error === "object" ? JSON.stringify(error) : error
-              }`,
-              "error"
-            );
-          });
-
-          socket.on("connect_error", (error) => {
-            log(`Connection error: ${error.message}`, "error");
-            updateConnectionStatus("Connection Failed", false);
-          });
-
-          // Document event listeners
-          socket.on("document-loaded", (data) => {
-            log(
-              `Document loaded: ${
-                typeof data === "object" ? JSON.stringify(data) : data
-              }`,
+              `Authentication successful! User ID: ${response.userId}`,
               "success"
             );
-            if (typeof data === "object" && data.content !== undefined) {
+            authenticatedUserId = response.userId;
+            authenticateBtn.disabled = true; // Disable auth button after success
+          } else {
+            log(`Authentication failed: ${response.message}`, "error");
+            authenticatedUserId = null;
+            socket.disconnect(); // Disconnect on failed auth
+          }
+        });
+
+        // Event for document loading
+        socket.on("document:loaded", (data) => {
+          log(
+            `Document '${data.documentId}' loaded. Content received. Role: ${data.userRole}`,
+            "success"
+          );
+          currentDocumentId = data.documentId;
+          currentDocumentDisplay.textContent = data.documentId;
+          documentContentTextarea.value = data.content;
+        });
+
+        // Event for real-time content updates from others
+        socket.on("document:content-updated", (data) => {
+          if (data.documentId === currentDocumentId) {
+            log(
+              `Content updated for document '${data.documentId}' by user ${
+                data.userName || data.userId
+              }`
+            );
+            // Only update if the change is not from the current authenticated user themselves
+            // This prevents the textarea from "flickering" due to self-updates.
+            if (data.userId !== authenticatedUserId) {
               documentContentTextarea.value = data.content;
-              currentDocumentId = data.documentId;
-              currentDocDisplay.textContent = data.documentId;
-            } else {
-              documentContentTextarea.value = data; // Fallback for string content
             }
-            updateConnectionStatus("Connected", true);
-          });
+          }
+        });
 
-          socket.on("document-content-update", (data) => {
-            log(`Content updated by ${data.updatedBy || "unknown"}`, "success");
-            if (typeof data === "object") {
-              documentContentTextarea.value = data.content;
-            } else {
-              documentContentTextarea.value = data;
-            }
-          });
+        // Event for joining errors
+        socket.on("document-join-error", (data) => {
+          log(`Failed to join document: ${data.message}`, "error");
+          currentDocumentId = null;
+          currentDocumentDisplay.textContent = "None";
+          documentContentTextarea.value = "";
+        });
 
-          socket.on("document-error", (error) => {
-            log(`Document error: ${error}`, "error");
-          });
+        socket.on("permission-denied", (data) => {
+          log(`Permission Denied: ${data.message}`, "error");
+        });
 
-          socket.on("user-joined", (data) => {
-            log(`User joined: ${data.message}`, "info");
-          });
-
-          socket.on("user-left", (data) => {
-            log(`User left: ${data.message}`, "info");
-          });
-
-          socket.on("test-response", (data) => {
-            log(`Test response: ${JSON.stringify(data)}`, "success");
-          });
-        } catch (error) {
-          log(`Failed to connect: ${error.message}`, "error");
-        }
+        // (Day 9 placeholder) Real-time cursor/presence updates
+        socket.on("document:cursor-updated", (data) => {
+          if (
+            data.documentId === currentDocumentId &&
+            data.userId !== authenticatedUserId
+          ) {
+            log(
+              `User ${data.userName || data.userId} moved cursor to position: ${
+                data.position
+              } in doc ${data.documentId}`
+            );
+            // Frontend would render this cursor at 'position'
+          }
+        });
+        socket.on("user:joined-document", (data) => {
+          if (
+            data.documentId === currentDocumentId &&
+            data.userId !== authenticatedUserId
+          ) {
+            log(
+              `User ${data.userName || data.userId} joined document ${
+                data.documentId
+              }`
+            );
+          }
+        });
+        socket.on("user:left-document", (data) => {
+          if (
+            data.documentId === currentDocumentId &&
+            data.userId !== authenticatedUserId
+          ) {
+            log(
+              `User ${data.userName || data.userId} left document ${
+                data.documentId
+              }`
+            );
+          }
+        });
       });
 
-      // Disconnect socket
       disconnectBtn.addEventListener("click", () => {
         if (socket) {
           socket.disconnect();
-          socket = null;
-          log("Manually disconnected from server");
-          updateConnectionStatus("Disconnected", false);
-          currentDocumentId = null;
-          currentDocDisplay.textContent = "None";
         }
       });
 
-      // Test connection
-      testBtn.addEventListener("click", () => {
-        if (socket) {
-          log("Sending test event...");
-          socket.emit("test", {
-            message: "Hello from client!",
-            timestamp: new Date().toISOString(),
-          });
+      authenticateBtn.addEventListener("click", () => {
+        if (socket && socket.connected) {
+          const token = jwtTokenInput.value.trim();
+          if (token) {
+            socket.emit("authenticate", { token });
+            log("Attempting to authenticate socket...");
+          } else {
+            log("Please enter a JWT token to authenticate.", "error");
+          }
+        } else {
+          log("Please connect to the server first.", "error");
         }
       });
 
-      // Join document
-      joinDocBtn.addEventListener("click", () => {
-        const docId = documentIdInput.value.trim();
-        if (!docId) {
-          log("Please enter a document ID", "error");
-          return;
-        }
-
-        if (socket) {
-          log(`Attempting to join document: ${docId}`);
-          socket.emit("join-document", docId);
+      joinDocumentBtn.addEventListener("click", () => {
+        if (socket && socket.connected && authenticatedUserId) {
+          const docId = documentIdInput.value.trim();
+          if (docId) {
+            log(`Attempting to join document: ${docId}`);
+            socket.emit("join-document", { documentId: docId });
+          } else {
+            log("Please enter a Document ID.", "error");
+          }
+        } else if (!authenticatedUserId) {
+          log("Please authenticate your socket first.", "error");
+        } else {
+          log("Please connect to the server first.", "error");
         }
       });
 
-      // Leave document
-      leaveDocBtn.addEventListener("click", () => {
-        if (socket && currentDocumentId) {
+      leaveDocumentBtn.addEventListener("click", () => {
+        if (socket && currentDocumentId && authenticatedUserId) {
           log(`Leaving document: ${currentDocumentId}`);
-          // Note: There's no explicit leave-document event in your handler
-          // You might want to add one, or just handle it on disconnect
+          socket.emit("leave-document", { documentId: currentDocumentId });
           currentDocumentId = null;
-          currentDocDisplay.textContent = "None";
+          currentDocumentDisplay.textContent = "None";
           documentContentTextarea.value = "";
-          updateConnectionStatus("Connected", true);
+          log("Left document successfully.", "success");
+        } else {
+          log("Not currently in a document or not authenticated.", "info");
         }
       });
 
-      // Update content
+      // Manual Update content
       updateContentBtn.addEventListener("click", () => {
-        if (socket && currentDocumentId) {
+        if (socket && currentDocumentId && authenticatedUserId) {
           const content = documentContentTextarea.value;
-          log(`Updating document content (${content.length} characters)`);
-          socket.emit("document-content-change", content);
+          log(
+            `Manually updating document content (${content.length} characters)`
+          );
+          socket.emit("document-content-change", {
+            documentId: currentDocumentId,
+            content: content,
+          });
+        } else {
+          log(
+            "Not in a document, not connected, or not authenticated.",
+            "error"
+          );
         }
       });
 
       // Clear content
       clearContentBtn.addEventListener("click", () => {
         documentContentTextarea.value = "";
+        log("Local content cleared.");
       });
 
       // Auto-update content (optional)
       let contentUpdateTimeout;
       documentContentTextarea.addEventListener("input", () => {
-        if (socket && currentDocumentId) {
+        if (socket && currentDocumentId && authenticatedUserId) {
           clearTimeout(contentUpdateTimeout);
           contentUpdateTimeout = setTimeout(() => {
             const content = documentContentTextarea.value;
-            log(`Auto-updating content (${content.length} chars)`);
-            socket.emit("document-content-change", content);
+            log(
+              `Auto-updating content (${content.length} chars) for doc: ${currentDocumentId}`
+            );
+            socket.emit("document-content-change", {
+              documentId: currentDocumentId,
+              content: content,
+            });
           }, 1000); // Wait 1 second after user stops typing
+        } else if (!authenticatedUserId) {
+          // Do not log error for every keystroke if not authenticated, just prevent sending
+          // log("Cannot auto-update: Socket not authenticated.", "info"); // Uncomment for more verbose logging
+        } else {
+          log(
+            "Cannot auto-update: Not in a document or not connected.",
+            "info"
+          );
+        }
+      });
+
+      // Optional: Real-time cursor position sharing (for Day 9)
+      let cursorPositionTimeout;
+      documentContentTextarea.addEventListener("keyup", () => {
+        if (socket && currentDocumentId && authenticatedUserId) {
+          clearTimeout(cursorPositionTimeout);
+          cursorPositionTimeout = setTimeout(() => {
+            const position = documentContentTextarea.selectionStart;
+            // Only send if position has changed or after a brief delay
+            socket.emit("document:cursor-move", {
+              documentId: currentDocumentId,
+              position: position,
+            });
+            // log(`Emitted cursor move: ${position}`);
+          }, 200); // Send cursor update every 200ms of inactivity
         }
       });
 
       // Initialize
       updateConnectionStatus("Disconnected", false);
-      log("Test client initialized. Ready to connect!");
+      log("Test client initialized. Ready to connect and authenticate!");
     </script>
   </body>
 </html>

@@ -1,251 +1,309 @@
-// FIXED: Added missing JWT import
+// src/socket/socketHandler.js
+
 import jwt from "jsonwebtoken";
+import { PrismaClient } from "../../generated/prisma/client.js";
 
-// The main function that initializes Socket.IO event handlers
-const initializeSocketHandlers = (io, prisma, Role, jwtSecret) => {
-  io.on("connection", async (socket) => {
-    console.log(`A user connected: ${socket.id}`);
+const prisma = new PrismaClient();
 
-    // 1. Authenticate the WebSocket connection using JWT
-    const token = socket.handshake.auth.token || socket.handshake.query.token;
+// In-memory store for debouncing document saves
+// Structure: { documentId: { content: string, timeoutId: NodeJS.Timeout } }
+const documentSaveQueue = new Map();
 
-    if (!token) {
-      console.log(`Socket ${socket.id} disconnected: No token provided.`);
-      // FIXED: Emit error before disconnecting and add delay
-      socket.emit("error", "No authentication token provided");
-      setTimeout(() => socket.disconnect(true), 100);
-      return;
-    }
+// Helper to get user's role on a document (duplicated from collaborationController for now to avoid circular dependencies)
+const getUserRoleOnDocument = async (documentId, userId) => {
+  // Check if user is the owner
+  const document = await prisma.document.findUnique({
+    where: { id: documentId },
+    select: { ownerId: true },
+  });
+  if (document && document.ownerId === userId) {
+    return "OWNER"; // This should match the Prisma Role enum value
+  }
 
+  // Check if user is a collaborator
+  const collaboration = await prisma.collaboration.findUnique({
+    where: {
+      userId_documentId: {
+        userId,
+        documentId,
+      },
+    },
+    select: { role: true },
+  });
+  return collaboration ? collaboration.role : null;
+};
+
+// Function to debounce and save document content to DB
+const debounceSaveDocument = (documentId, content) => {
+  if (documentSaveQueue.has(documentId)) {
+    clearTimeout(documentSaveQueue.get(documentId).timeoutId);
+  }
+
+  const timeoutId = setTimeout(async () => {
     try {
-      const decoded = jwt.verify(token, jwtSecret);
-      socket.userId = decoded.userID;
-      console.log(`User ${socket.userId} connected via socket ${socket.id}`);
-
-      // FIXED: Emit successful connection event
-      socket.emit("connected", {
-        message: "Successfully connected and authenticated",
-        userId: socket.userId,
+      await prisma.document.update({
+        where: { id: documentId },
+        data: { content: content, updatedAt: new Date() },
       });
+      console.log(`Document ${documentId} saved to DB.`);
     } catch (error) {
-      console.error(
-        `Socket ${socket.id} - JWT verification failed:`,
-        error.message
-      );
-
-      // FIXED: Emit error with delay before disconnecting
-      socket.emit("error", {
-        type: "authentication_failed",
-        message:
-          "Authentication failed: Invalid or expired token. Please log in again.",
-      });
-
-      setTimeout(() => socket.disconnect(true), 100);
-      return;
+      console.error(`Error saving document ${documentId}:`, error);
+    } finally {
+      documentSaveQueue.delete(documentId); // Clear from queue after saving
     }
+  }, 1000); // Save after 1 second of no new changes
 
-    // 2. Handle 'join-document' event
-    socket.on("join-document", async (documentId) => {
-      console.log(
-        `User ${socket.userId} attempting to join document: ${documentId}`
-      );
+  documentSaveQueue.set(documentId, { content, timeoutId });
+};
 
-      if (!documentId) {
-        console.warn(
-          `User ${socket.userId} attempted to join document with no ID.`
+const initializeSocketHandlers = (io, prismaClient, RoleEnum, jwtSecret) => {
+  io.on("connection", (socket) => {
+    console.log(`Socket connected: ${socket.id}`);
+
+    // --- Authentication for Socket.IO connection ---
+    // This event should be emitted by the client right after `connect`
+    socket.on("authenticate", (data) => {
+      const { token } = data;
+      if (!token) {
+        console.log(`Socket ${socket.id} authentication failed: No token.`);
+        socket.emit("authenticated", {
+          success: false,
+          message: "No token provided.",
+        });
+        socket.disconnect(true); // Disconnect unauthenticated sockets
+        return;
+      }
+      try {
+        const decoded = jwt.verify(token, jwtSecret);
+        socket.user = decoded; // Attach user info to the socket (userId, userEmail from JWT)
+        console.log(
+          `Socket ${socket.id} authenticated for user: ${socket.user.userID}`
         );
-        return socket.emit(
-          "document-error",
-          "Document ID is required to join."
+        socket.emit("authenticated", {
+          success: true,
+          userId: socket.user.userID,
+        });
+      } catch (error) {
+        console.log(
+          `Socket ${socket.id} authentication failed:`,
+          error.message
         );
+        socket.emit("authenticated", {
+          success: false,
+          message: "Invalid token.",
+        });
+        socket.disconnect(true); // Disconnect on failed auth
+      }
+    });
+
+    // --- Join Document Room ---
+    socket.on("join-document", async ({ documentId }) => {
+      // Token should ideally be sent once via "authenticate"
+      const user = socket.user;
+      if (!user) {
+        console.log(
+          `Socket ${socket.id} attempted to join document ${documentId} without prior authentication.`
+        );
+        socket.emit("document-join-error", {
+          message: "Authentication required before joining a document.",
+        });
+        return;
       }
 
-      try {
-        // Before joining, verify if the user has access to this document
-        const document = await prisma.document.findUnique({
-          where: { id: documentId },
-          include: {
-            collaborators: {
-              where: { userId: socket.userId },
-              select: { role: true },
-            },
-          },
+      // Check user permissions for the document
+      const userRole = await getUserRoleOnDocument(documentId, user.userID);
+      if (!userRole) {
+        console.log(
+          `User ${user.userID} not authorized to access document ${documentId}`
+        );
+        socket.emit("document-join-error", {
+          message:
+            "Access Denied: You do not have permission to view this document.",
         });
+        return;
+      }
 
-        if (!document) {
-          console.warn(
-            `User ${socket.userId} tried to join non-existent document: ${documentId}`
-          );
-          return socket.emit("document-error", "Document not found.");
-        }
-
-        // Check if user is owner or collaborator
-        const isOwner = document.ownerId === socket.userId;
-        const isCollaborator = document.collaborators.length > 0;
-
-        if (!isOwner && !isCollaborator) {
-          console.warn(
-            `User ${socket.userId} unauthorized to join document: ${documentId}`
-          );
-          return socket.emit(
-            "document-error",
-            "Access Denied: You are not authorized to view this document."
-          );
-        }
-
-        // Leave any previous document room
-        Array.from(socket.rooms)
-          .filter((room) => room !== socket.id)
-          .forEach((room) => {
-            console.log(`User ${socket.userId} leaving room: ${room}`);
-            socket.leave(room);
+      // Leave any previously joined document room (for single document focus per socket)
+      // This ensures a user is only actively collaborating on one document at a time per tab/socket.
+      // If a user can edit multiple documents simultaneously on different tabs, each tab needs its own socket.
+      socket.rooms.forEach((room) => {
+        if (room !== socket.id) {
+          // Don't leave the default personal room
+          console.log(`Socket ${socket.id} leaving previous room: ${room}`);
+          socket.leave(room);
+          // Emit user:left-document for the old document (Day 9 concept)
+          io.to(room).emit("user:left-document", {
+            documentId: room, // The room name is the documentId
+            userId: user.userID,
+            userName: user.userName,
           });
+        }
+      });
 
-        // Join the document-specific room
-        socket.join(documentId);
-        console.log(
-          `User ${socket.userId} (socket ${socket.id}) joined document room: ${documentId}`
-        );
-
-        // FIXED: Send more comprehensive document data
-        socket.emit("document-loaded", {
-          documentId: documentId,
-          content: document.content,
-          title: document.title,
-          message: "Successfully joined document",
-        });
-
-        socket.documentId = documentId;
-
-        // FIXED: Notify other users in the room about new user joining
-        socket.to(documentId).emit("user-joined", {
-          userId: socket.userId,
-          message: `User ${socket.userId} joined the document`,
-        });
-      } catch (error) {
-        console.error(
-          `Error joining document ${documentId} for user ${socket.userId}:`,
-          error
-        );
-        socket.emit("document-error", "Server error while joining document.");
-      }
-    });
-
-    // 3. Handle 'document-content-change' event
-    socket.on("document-content-change", async (newContent) => {
-      const documentId = socket.documentId;
-      const userId = socket.userId;
-
+      socket.join(documentId);
       console.log(
-        `User ${userId} attempting to change content in document: ${documentId}`
+        `Socket ${socket.id} (User: ${user.userID}) joined document room: ${documentId}`
       );
 
-      if (!documentId) {
-        console.warn(
-          `User ${userId} attempted to change content without being in a document room.`
-        );
-        return socket.emit(
-          "document-error",
-          "Not in a document to update content."
-        );
-      }
-
-      if (typeof newContent !== "string") {
-        return socket.emit("document-error", "Invalid content format.");
-      }
-
+      // Fetch and send initial document content to the joining client
       try {
-        // Fetch document to verify ownership/editor role
-        const document = await prisma.document.findUnique({
+        const document = await prismaClient.document.findUnique({
           where: { id: documentId },
-          include: {
-            collaborators: {
-              where: { userId: userId },
-              select: { role: true },
-            },
-          },
+          select: { content: true },
         });
-
-        if (!document) {
-          return socket.emit(
-            "document-error",
-            "Document not found during content update."
+        if (document) {
+          socket.emit("document:loaded", {
+            documentId: documentId,
+            content: document.content,
+            userRole: userRole,
+          });
+          console.log(
+            `Sent initial content for document ${documentId} to ${socket.id}`
           );
+          // Inform others in the room about the new user joining (Day 9 concept)
+          io.to(documentId).emit("user:joined-document", {
+            // Use io.to() to include the sender for presence updates, or socket.to() to exclude
+            documentId: documentId,
+            userId: user.userID,
+            // Assuming user.userName exists in the decoded JWT payload
+            userName: user.userName || user.userEmail.split("@")[0], // Fallback to part of email
+          });
+        } else {
+          socket.emit("document-join-error", {
+            message: "Document not found.",
+          });
         }
-
-        const isOwner = document.ownerId === userId;
-        const userRole =
-          document.collaborators.length > 0
-            ? document.collaborators[0].role
-            : null;
-
-        // Check if user has permission to edit (OWNER or EDITOR)
-        if (!isOwner && userRole !== Role.EDITOR) {
-          console.warn(
-            `User ${userId} (role: ${userRole}) unauthorized to edit document: ${documentId}`
-          );
-          return socket.emit(
-            "document-error",
-            "Access Denied: You do not have permission to edit this document."
-          );
-        }
-
-        // Update the document content in the database
-        await prisma.document.update({
-          where: { id: documentId },
-          data: { content: newContent },
-        });
-
-        // FIXED: Broadcast to all clients in the room INCLUDING the sender
-        io.to(documentId).emit("document-content-update", {
-          content: newContent,
-          updatedBy: userId,
-          timestamp: new Date().toISOString(),
-        });
-
-        console.log(
-          `Document ${documentId} content updated by ${userId} and broadcasted.`
-        );
       } catch (error) {
         console.error(
-          `Error updating document ${documentId} content for user ${userId}:`,
+          `Error fetching document ${documentId} for socket ${socket.id}:`,
           error
         );
-        socket.emit(
-          "document-error",
-          "Server error while updating document content."
-        );
+        socket.emit("document-join-error", {
+          message: "Error loading document.",
+        });
       }
     });
 
-    // FIXED: Add a test event handler
-    socket.on("test", (data) => {
-      console.log(`Test event received from user ${socket.userId}:`, data);
-      socket.emit("test-response", {
-        message: "Test successful",
-        receivedData: data,
-        timestamp: new Date().toISOString(),
+    // --- Real-time Document Content Change ---
+    socket.on("document-content-change", async (data) => {
+      const { documentId, content } = data;
+
+      if (!documentId || content === undefined || content === null) {
+        console.warn(
+          `Invalid document-content-change event from ${socket.id}: Missing documentId or content.`
+        );
+        return;
+      }
+
+      const user = socket.user;
+      if (!user) {
+        console.log(
+          `Unauthenticated socket ${socket.id} tried to change document ${documentId}.`
+        );
+        return;
+      }
+
+      // Ensure the socket is actually in the room for the document they are trying to change
+      if (!socket.rooms.has(documentId)) {
+        console.warn(
+          `Socket ${socket.id} tried to change document ${documentId} but is not in the room.`
+        );
+        socket.emit("permission-denied", {
+          message: "You are not an active collaborator in this document.",
+        });
+        return;
+      }
+
+      // Check permissions for content modification (OWNER or EDITOR)
+      const userRole = await getUserRoleOnDocument(documentId, user.userID);
+      if (userRole !== RoleEnum.OWNER && userRole !== RoleEnum.EDITOR) {
+        console.warn(
+          `User ${user.userID} (Role: ${userRole}) attempted to modify document ${documentId} without edit permissions.`
+        );
+        socket.emit("permission-denied", {
+          message: "You do not have permission to edit this document.",
+        });
+        return;
+      }
+
+      // Broadcast changes to all other clients in the same room
+      socket.to(documentId).emit("document:content-updated", {
+        documentId: documentId,
+        content: content,
+        userId: user.userID, // Who made the change (for future UI)
+        userName: user.userName || user.userEmail.split("@")[0],
+      });
+
+      // Debounced persistence to database
+      debounceSaveDocument(documentId, content);
+    });
+
+    // --- Real-time Cursor & Presence (Day 9) ---
+    socket.on("document:cursor-move", (data) => {
+      const { documentId, position } = data;
+      const user = socket.user;
+      if (
+        !user ||
+        !documentId ||
+        position === undefined ||
+        !socket.rooms.has(documentId)
+      ) {
+        return; // Ignore if not authenticated, no docId, or not in room
+      }
+
+      // Broadcast cursor position to others in the same room
+      socket.to(documentId).emit("document:cursor-updated", {
+        documentId: documentId,
+        userId: user.userID,
+        userName: user.userName || user.userEmail.split("@")[0],
+        position: position,
       });
     });
 
-    // 4. Handle 'disconnect' event
-    socket.on("disconnect", (reason) => {
-      console.log(
-        `User ${socket.userId || socket.id} disconnected. Reason: ${reason}`
-      );
-
-      // FIXED: Notify other users if the user was in a document room
-      if (socket.documentId) {
-        socket.to(socket.documentId).emit("user-left", {
-          userId: socket.userId,
-          message: `User ${socket.userId} left the document`,
-        });
+    socket.on("leave-document", async ({ documentId }) => {
+      const user = socket.user;
+      if (!user || !documentId || !socket.rooms.has(documentId)) {
+        return;
       }
+      socket.leave(documentId);
+      console.log(
+        `Socket ${socket.id} (User: ${user.userID}) left document room: ${documentId}`
+      );
+      // Inform others in the room about the user leaving
+      io.to(documentId).emit("user:left-document", {
+        documentId: documentId,
+        userId: user.userID,
+        userName: user.userName || user.userEmail.split("@")[0],
+      });
+      // Optionally, trigger an immediate save if user was the last active editor in this session
+      // (More complex logic needed here)
     });
 
-    // FIXED: Add error handler for socket errors
-    socket.on("error", (error) => {
-      console.error(`Socket error for user ${socket.userId}:`, error);
+    // --- Handle Disconnect ---
+    socket.on("disconnect", () => {
+      console.log(`Socket disconnected: ${socket.id}`);
+      const user = socket.user;
+      if (user) {
+        // Find which document rooms this user was in and emit a "user:left-document" event
+        // Iterate through all rooms the socket was in (excluding its own ID room)
+        socket.rooms.forEach((room) => {
+          if (room !== socket.id) {
+            // 'room' here would be the documentId
+            // Ensure this is a document room and not some other internal room
+            // A more robust way might be to keep a map of `socket.id -> activeDocumentId`
+            console.log(
+              `User ${user.userID} leaving document ${room} on disconnect`
+            );
+            io.to(room).emit("user:left-document", {
+              documentId: room,
+              userId: user.userID,
+              userName: user.userName || user.userEmail.split("@")[0],
+            });
+          }
+        });
+      }
+      // Any pending debounced saves will still complete if their timeout hasn't expired.
+      // If immediate save on disconnect is critical, you'd need to track active documents per socket.
     });
   });
 };

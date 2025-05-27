@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Collaborative Document Editor</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Collaborative Editor</h1>
+      <nav>
+        <button id="logoutBtn" style="display: none">Logout</button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="authSection" class="active-section">
+        <h2>Login / Register</h2>
+        <form id="authForm">
+          <input
+            type="text"
+            id="authName"
+            placeholder="Name (for registration)"
+            style="display: none"
+          />
+          <input type="email" id="authEmail" placeholder="Email" required />
+          <input
+            type="password"
+            id="authPassword"
+            placeholder="Password"
+            required
+          />
+          <button type="submit" id="authSubmitBtn">Login</button>
+        </form>
+        <p id="authMessage" class="message"></p>
+        <p>
+          <a href="#" id="toggleAuthMode"
+            >Don't have an account? Register here.</a
+          >
+        </p>
+      </section>
+
+      <section id="documentListSection" class="hidden-section">
+        <h2>My Documents</h2>
+        <button id="newDocumentBtn">Create New Document</button>
+        <ul id="documentList"></ul>
+      </section>
+
+      <section id="documentEditorSection" class="hidden-section">
+        <h2 id="editorTitle">Document Title</h2>
+        <textarea id="documentContent" rows="20" cols="80"></textarea>
+        <div id="collaboratorsDisplay">
+          Collaborators: <span id="activeCollaborators"></span>
+        </div>
+        <button id="saveDocumentBtn">Save Document</button>
+        <button id="backToListBtn">Back to List</button>
+      </section>
+    </main>
+
+    <script src="../src/socket/socketHandler.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>
