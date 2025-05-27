@@ -37,34 +37,6 @@
         gap: 20px;
       }
 
-      #connectionStatus {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 0.9rem;
-        padding: 5px 10px;
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 4px;
-        min-width: 120px;
-      }
-
-      .status-indicator {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        margin-right: 5px;
-        flex-shrink: 0;
-      }
-
-      .status-connected {
-        background-color: #28a745;
-      }
-
-      .status-disconnected {
-        background-color: #dc3545;
-      }
-
       #logoutBtn {
         margin-left: 10px;
         white-space: nowrap;
@@ -794,10 +766,6 @@
     <header>
       <h1>Collaborative Editor</h1>
       <nav>
-        <div id="connectionStatus">
-          <span class="status-indicator status-disconnected"></span>
-          <span>Disconnected</span>
-        </div>
         <button id="logoutBtn" style="display: none">Logout</button>
       </nav>
       <div id="saveNotification" class="save-notification">
