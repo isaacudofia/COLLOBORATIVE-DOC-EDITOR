@@ -173,16 +173,17 @@
       .document-actions {
         display: flex;
         gap: 10px;
-        margin-top: auto;
+        margin-top: 10px;
       }
 
       .document-actions button {
-        flex: 1;
         padding: 8px 16px;
         border-radius: 4px;
         font-size: 14px;
         font-weight: 500;
-        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
       }
 
       .open-doc-btn {
@@ -195,12 +196,15 @@
       }
 
       .delete-doc-btn {
-        background: #dc3545 !important;
+        background-color: #dc3545 !important;
         color: white !important;
+        margin-left: 8px;
       }
 
       .delete-doc-btn:hover {
-        background: #c82333 !important;
+        background-color: #c82333 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       .document-info {
@@ -343,6 +347,7 @@
 
       .modal-body {
         margin-bottom: 20px;
+        min-height: 100px;
       }
 
       .modal-footer {
@@ -479,10 +484,45 @@
       .delete-doc-btn {
         background-color: #dc3545 !important;
         color: white;
+        margin-left: 8px;
       }
 
       .delete-doc-btn:hover {
         background-color: #c82333 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .delete-warning {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .warning-icon {
+        color: #dc3545;
+        font-size: 24px;
+        flex-shrink: 0;
+      }
+
+      .document-info-preview {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+        margin-top: 15px;
+      }
+
+      .btn-danger {
+        background: #dc3545;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #c82333;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       .save-notification {
@@ -717,6 +757,37 @@
         font-size: 12px;
         margin-left: 8px;
       }
+
+      .form-input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        font-size: 16px;
+      }
+
+      .form-input:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+      }
+
+      .document-info-preview {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 4px;
+        margin-top: 15px;
+      }
+
+      .btn-danger {
+        background: #dc3545;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #c82333;
+      }
     </style>
   </head>
   <body>
@@ -902,6 +973,72 @@
       </div>
     </div>
 
+    <!-- Create Document Modal -->
+    <div id="createDocumentModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Create New Document</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="createDocumentForm">
+            <input
+              type="text"
+              id="newDocumentTitle"
+              placeholder="Enter document title"
+              required
+              class="form-input"
+            />
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn btn-secondary"
+            onclick="closeModal('createDocumentModal')"
+          >
+            Cancel
+          </button>
+          <button class="btn btn-primary" id="createDocumentConfirm">
+            Create
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Document Modal -->
+    <div id="deleteDocumentModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Delete Document</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="delete-warning">
+            <i class="fas fa-exclamation-triangle warning-icon"></i>
+            <p>
+              Are you sure you want to delete this document? This action cannot
+              be undone.
+            </p>
+          </div>
+          <div class="document-info-preview">
+            <strong>Document Title:</strong>
+            <span id="deleteDocumentTitle"></span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn btn-secondary"
+            onclick="closeModal('deleteDocumentModal')"
+          >
+            Cancel
+          </button>
+          <button class="btn btn-danger" id="deleteDocumentConfirm">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script>
       const API_BASE_URL = "http://localhost:4000/api";
       let socket = null;
@@ -993,107 +1130,12 @@
       function getCurrentUserIdFromToken() {
         if (!authToken) return null;
         try {
-          const decoded = JSON.parse(atob(authToken.split(".")[1]));
-          return decoded.userID || decoded.userId || decoded.id;
-        } catch (e) {
-          console.error("Error decoding token:", e);
+          const payload = JSON.parse(atob(authToken.split(".")[1]));
+          return payload.userID;
+        } catch (error) {
+          console.error("Error parsing token:", error);
           return null;
         }
-      }
-
-      function debugLog(section, message) {
-        console.log(`[${section}]`, message);
-        const debugElement = section === "auth" ? debugAuth : debugDocs;
-        if (debugElement) {
-          debugElement.style.display = "block";
-          debugElement.innerHTML += `<div>[${new Date().toISOString()}] ${JSON.stringify(
-            message
-          )}</div>`;
-          debugElement.scrollTop = debugElement.scrollHeight;
-        }
-      }
-
-      // Socket initialization
-      function initializeSocket() {
-        if (socket) {
-          socket.disconnect();
-        }
-
-        socket = io("http://localhost:4000", {
-          forceNew: true,
-          transports: ["websocket", "polling"],
-        });
-
-        socket.on("connect", () => {
-          console.log("Connected to WebSocket server.");
-          updateConnectionStatus(true);
-
-          if (authToken) {
-            socket.emit("authenticate", { token: authToken });
-          }
-        });
-
-        socket.on("disconnect", () => {
-          console.log("Disconnected from WebSocket server.");
-          updateConnectionStatus(false);
-        });
-
-        socket.on("connect_error", (error) => {
-          console.error("Socket connection error:", error);
-          updateConnectionStatus(false);
-        });
-
-        socket.on("authenticated", (data) => {
-          if (data.success) {
-            console.log("Socket authenticated successfully");
-            debugLog("auth", "Socket authenticated");
-          } else {
-            console.error("Socket authentication failed:", data.message);
-            debugLog("auth", `Socket auth failed: ${data.message}`);
-          }
-        });
-
-        socket.on("document:loaded", (data) => {
-          if (data.documentId === currentDocumentId) {
-            documentContentTextarea.value = data.content;
-            currentUserRole = data.userRole;
-            applyRolePermissions();
-          }
-        });
-
-        socket.on("document:content-updated", (data) => {
-          if (data.documentId === currentDocumentId) {
-            const currentCursorPos = documentContentTextarea.selectionStart;
-            const currentScrollPos = documentContentTextarea.scrollTop;
-            documentContentTextarea.value = data.content;
-            documentContentTextarea.selectionStart = currentCursorPos;
-            documentContentTextarea.selectionEnd = currentCursorPos;
-            documentContentTextarea.scrollTop = currentScrollPos;
-          }
-        });
-
-        socket.on("user:joined-document", (data) => {
-          if (data.documentId === currentDocumentId) {
-            console.log(`${data.userName} joined the document.`);
-            fetchCollaborators(currentDocumentId);
-          }
-        });
-
-        socket.on("user:left-document", (data) => {
-          if (data.documentId === currentDocumentId) {
-            console.log(`${data.userName} left the document.`);
-            fetchCollaborators(currentDocumentId);
-          }
-        });
-
-        socket.on("document-join-error", (data) => {
-          alert(data.message);
-          showSection("documentListSection");
-        });
-
-        socket.on("permission-denied", (data) => {
-          alert(data.message);
-        });
       }
 
       // Authentication Logic
@@ -1202,8 +1244,9 @@
           }
 
           documentListUl.innerHTML = "";
-          // Ensure we're accessing the correct property and it's an array
-          const documents = Array.isArray(data) ? data : data.documents || [];
+          const documents = Array.isArray(data)
+            ? data
+            : data.documents || data.data || [];
 
           if (documents.length === 0) {
             documentListUl.innerHTML = `
@@ -1224,7 +1267,6 @@
               doc.updatedAt || doc.createdAt
             ).toLocaleDateString();
             const currentUserId = getCurrentUserIdFromToken();
-            const isOwner = doc.ownerId === currentUserId;
 
             li.innerHTML = `
               <div class="document-info">
@@ -1233,26 +1275,20 @@
                 }</h3>
                 <div class="document-meta">
                   Last modified: ${date}
-                  ${isOwner ? '<span class="owner-badge">Owner</span>' : ""}
                 </div>
               </div>
               <div class="document-actions">
                 <button class="btn open-doc-btn" data-id="${doc.id}">
-                  Open
+                  <i class="fas fa-edit"></i> Open
                 </button>
-                ${
-                  isOwner
-                    ? `<button class="btn delete-doc-btn" data-id="${doc.id}">
-                      Delete
-                     </button>`
-                    : ""
-                }
+                <button class="btn delete-doc-btn" data-id="${doc.id}">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
               </div>
             `;
             documentListUl.appendChild(li);
           });
         } catch (error) {
-          console.error("Load documents error:", error);
           documentListUl.innerHTML = `
             <div class="empty-state error">
               <div class="empty-state-icon">⚠️</div>
@@ -1266,62 +1302,92 @@
       }
 
       async function createNewDocument() {
-        const title = prompt("Enter a title for the new document:");
-        if (!title) return;
+        showModal("createDocumentModal", {
+          onSubmit: async () => {
+            const titleInput = document.getElementById("newDocumentTitle");
+            const title = titleInput.value.trim();
 
-        debugLog("docs", `Creating document: ${title}`);
+            if (!title) {
+              showModal("alertModal", {
+                title: "Error",
+                message: "Please enter a document title",
+              });
+              return;
+            }
 
-        try {
-          const response = await fetch(`${API_BASE_URL}/documents`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${authToken}`,
-            },
-            body: JSON.stringify({ title, content: "" }),
-          });
+            try {
+              const response = await fetch(`${API_BASE_URL}/documents`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${authToken}`,
+                },
+                body: JSON.stringify({ title, content: "" }),
+              });
 
-          const data = await response.json();
-          debugLog("docs", `Create document response: ${JSON.stringify(data)}`);
+              const data = await response.json();
 
-          if (response.ok) {
-            loadDocuments();
-          } else {
-            alert(data.message || "Failed to create document.");
-          }
-        } catch (error) {
-          console.error("Create document error:", error);
-          debugLog("docs", `Create document error: ${error.message}`);
-          alert("Network error creating document.");
-        }
+              if (response.ok) {
+                showModal("alertModal", {
+                  title: "Success",
+                  message: "Document created successfully!",
+                });
+                titleInput.value = "";
+                loadDocuments();
+              } else {
+                throw new Error(data.message || "Failed to create document");
+              }
+            } catch (error) {
+              showModal("alertModal", {
+                title: "Error",
+                message: error.message,
+              });
+            }
+          },
+        });
       }
 
-      async function deleteDocument(id) {
-        showConfirm(
-          "Are you sure you want to delete this document? This action cannot be undone.",
-          async () => {
-            try {
-              const response = await fetch(`${API_BASE_URL}/documents/${id}`, {
+      // Replace the existing deleteDocument function
+
+      async function deleteDocument(documentId, documentTitle) {
+        const deleteModal = document.getElementById("deleteDocumentModal");
+        const deleteButton = document.getElementById("deleteDocumentConfirm");
+        const titleSpan = document.getElementById("deleteDocumentTitle");
+
+        titleSpan.textContent = documentTitle || "Untitled Document";
+        deleteModal.style.display = "flex";
+
+        deleteButton.onclick = async () => {
+          try {
+            const response = await fetch(
+              `${API_BASE_URL}/documents/${documentId}`,
+              {
                 method: "DELETE",
                 headers: {
                   Authorization: `Bearer ${authToken}`,
                   "Content-Type": "application/json",
                 },
-              });
-
-              if (response.ok) {
-                loadDocuments();
-              } else {
-                const data = await response.json();
-                showAlert(data.message || "Failed to delete document");
               }
-            } catch (error) {
-              console.error("Delete document error:", error);
-              showAlert("Network error while deleting document");
+            );
+
+            if (response.ok) {
+              closeModal("deleteDocumentModal");
+              showModal("alertModal", {
+                title: "Success",
+                message: "Document deleted successfully!",
+              });
+              loadDocuments();
+            } else {
+              const data = await response.json();
+              throw new Error(data.message || "Failed to delete document");
             }
-          },
-          "Delete Document"
-        );
+          } catch (error) {
+            showModal("alertModal", {
+              title: "Error",
+              message: error.message,
+            });
+          }
+        };
       }
 
       // Document Editor Logic
@@ -1418,8 +1484,8 @@
                     <span>${collab.user.email} (${collab.role})</span>
                     ${
                       !isCurrentUser && !isOwner
-                        ? `<button 
-                            class="remove-collaborator-btn" 
+                        ? `<button
+                            class="remove-collaborator-btn"
                             onclick="removeCollaborator('${documentId}', '${collab.user.id}')"
                           >Remove</button>`
                         : ""
@@ -1530,6 +1596,63 @@
         }
       }
 
+      // Socket Initialization
+      function initializeSocket() {
+        if (socket) {
+          socket.disconnect();
+        }
+
+        socket = io(API_BASE_URL, {
+          auth: { token: authToken },
+        });
+
+        socket.on("connect", () => {
+          updateConnectionStatus(true);
+        });
+
+        socket.on("disconnect", () => {
+          updateConnectionStatus(false);
+        });
+
+        socket.on("document:content-updated", (data) => {
+          if (data.documentId === currentDocumentId) {
+            const currentCursorPos = documentContentTextarea.selectionStart;
+            const currentScrollPos = documentContentTextarea.scrollTop;
+            documentContentTextarea.value = data.content;
+            documentContentTextarea.selectionStart = currentCursorPos;
+            documentContentTextarea.selectionEnd = currentCursorPos;
+            documentContentTextarea.scrollTop = currentScrollPos;
+          }
+        });
+
+        socket.on("user:joined-document", (data) => {
+          if (data.documentId === currentDocumentId) {
+            fetchCollaborators(currentDocumentId);
+          }
+        });
+
+        socket.on("user:left-document", (data) => {
+          if (data.documentId === currentDocumentId) {
+            fetchCollaborators(currentDocumentId);
+          }
+        });
+
+        socket.on("document-join-error", (data) => {
+          showModal("alertModal", {
+            title: "Error",
+            message: data.message,
+          });
+          showSection("documentListSection");
+        });
+
+        socket.on("permission-denied", (data) => {
+          showModal("alertModal", {
+            title: "Permission Denied",
+            message: data.message,
+          });
+        });
+      }
+
       // Event Listeners
       authForm.addEventListener("submit", authenticateUser);
       toggleAuthModeBtn.addEventListener("click", toggleAuthForm);
@@ -1544,39 +1667,19 @@
         loadDocuments();
       });
 
-      documentListUl.addEventListener("click", async (e) => {
+      documentListUl.addEventListener("click", (e) => {
         const button = e.target.closest("button");
         if (!button) return;
 
         const documentId = button.dataset.id;
+        const documentTitle = button
+          .closest("li")
+          .querySelector(".document-title").textContent;
 
         if (button.classList.contains("open-doc-btn")) {
           openDocument(documentId);
         } else if (button.classList.contains("delete-doc-btn")) {
-          if (confirm("Are you sure you want to delete this document?")) {
-            try {
-              const response = await fetch(
-                `${API_BASE_URL}/documents/${documentId}`,
-                {
-                  method: "DELETE",
-                  headers: {
-                    Authorization: `Bearer ${authToken}`,
-                    "Content-Type": "application/json",
-                  },
-                }
-              );
-
-              if (response.ok) {
-                loadDocuments(); // Refresh the document list
-              } else {
-                const data = await response.json();
-                alert(data.message || "Failed to delete document");
-              }
-            } catch (error) {
-              console.error("Delete document error:", error);
-              alert("Network error while deleting document");
-            }
-          }
+          deleteDocument(documentId, documentTitle);
         }
       });
 
@@ -1655,6 +1758,13 @@
           const confirmBtn = modal.querySelector("#confirmButton");
           confirmBtn.onclick = () => {
             options.onConfirm();
+            closeModal(modalId);
+          };
+        }
+        if (options.onSubmit) {
+          const submitBtn = modal.querySelector("#createDocumentConfirm");
+          submitBtn.onclick = () => {
+            options.onSubmit();
             closeModal(modalId);
           };
         }
