@@ -1,0 +1,20 @@
+services:
+  # Backend API service
+  - type: web
+    name: collab-doc-editor-api
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: DATABASE_URL
+        sync: false # Will be set manually in Render dashboard
+      - key: JWT_PRIVATE_KEY
+        generateValue: true # Will generate a random value
+      - key: CLIENT_URL
+        sync: false # Will be set manually in Render dashboard
+    healthCheckPath: /
+    autoDeploy: true

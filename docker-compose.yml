@@ -1,7 +1,7 @@
-version: '3.8'
+version: "3.8"
 services:
   app:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     ports:
@@ -16,7 +16,15 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:4000/",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3

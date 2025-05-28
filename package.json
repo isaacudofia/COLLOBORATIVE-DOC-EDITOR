@@ -9,7 +9,11 @@
     "start": "node server.js",
     "build": "npx prisma generate",
     "db:migrate": "npx prisma migrate deploy",
-    "postinstall": "npm run build"
+    "postinstall": "npm run build",
+    "render-postbuild": "npm run db:migrate"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "keywords": [],
   "author": "",
