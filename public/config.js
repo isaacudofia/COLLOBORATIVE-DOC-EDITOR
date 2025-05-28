@@ -2,15 +2,15 @@
 const config = {
   // API base URL - falls back to localhost in development
   apiUrl:
-    process.env.NODE_ENV === "production"
-      ? process.env.API_URL || "https://your-backend-url.com/api"
-      : "http://localhost:4000/api",
+    window.location.hostname === "localhost"
+      ? "http://localhost:4000/api"
+      : "https://collab-doc-editor-u3w6.onrender.com",
 
   // Socket.IO URL - falls back to localhost in development
   socketUrl:
-    process.env.NODE_ENV === "production"
-      ? process.env.SOCKET_URL || "https://your-backend-url.com"
-      : "http://localhost:4000",
+    window.location.hostname === "localhost"
+      ? "http://localhost:4000"
+      : "https://collab-doc-editor-u3w6.onrender.com",
 };
 
 export default config;
