@@ -20,14 +20,25 @@ const server = http.createServer(app); // IMPORTANT: Create HTTP server
 const io = new Server(server, {
   // IMPORTANT: Attach Socket.IO to the HTTP server
   cors: {
-    origin: "*", // Allow all origins for development. In production, specify your frontend URL.
+    origin: process.env.NODE_ENV === 'production' 
+      ? process.env.CLIENT_URL 
+      : '*',
     methods: ["GET", "POST"],
+    credentials: true
   },
 });
 
 //GLOBAL MIDDLEWARES
 app.use(express.json());
-app.use(cors());
+// Configure CORS with security options
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.CLIENT_URL 
+    : '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.get("/", (req, res) => {
   res

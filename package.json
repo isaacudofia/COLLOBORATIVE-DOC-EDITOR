@@ -5,7 +5,11 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon"
+    "dev": "nodemon",
+    "start": "node server.js",
+    "build": "npx prisma generate",
+    "db:migrate": "npx prisma migrate deploy",
+    "postinstall": "npm run build"
   },
   "keywords": [],
   "author": "",
