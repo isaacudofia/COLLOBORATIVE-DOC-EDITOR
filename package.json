@@ -7,13 +7,12 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon",
     "start": "node server.js",
-    "build": "npx prisma generate",
+    "build": "npm install && npx prisma generate",
     "db:migrate": "npx prisma migrate deploy",
-    "postinstall": "npm run build",
-    "render-postbuild": "npm run db:migrate"
+    "postinstall": "prisma generate"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=14.0.0"
   },
   "keywords": [],
   "author": "",

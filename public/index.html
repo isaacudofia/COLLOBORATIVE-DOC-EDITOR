@@ -1012,13 +1012,13 @@
         apiUrl:
           window.location.protocol === "file:"
             ? "http://localhost:4000/api"
-            : "https://collab-doc-editor-u3w6.onrender.com",
+            : "https://collab-doc-editor-u3w6.onrender.com/api",
 
         // Socket.IO URL - falls back to localhost in development
         socketUrl:
           window.location.protocol === "file:"
             ? "http://localhost:4000/api"
-            : "https://collab-doc-editor-u3w6.onrender.com",
+            : "https://collab-doc-editor-u3w6.onrender.com/api",
       };
 
       const API_BASE_URL = config.apiUrl;
