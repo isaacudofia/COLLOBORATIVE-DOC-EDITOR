@@ -33,6 +33,7 @@ A real-time collaborative document editor that allows multiple users to simultan
   - Pure CSS for styling
 
 - **Backend:**
+
   - Node.js
   - Express.js
   - Socket.IO
@@ -40,9 +41,15 @@ A real-time collaborative document editor that allows multiple users to simultan
   - PostgreSQL
   - JWT for authentication
 
+- **DevOps:**
+  - Docker
+  - Docker Compose
+  - Container orchestration
+
 ## Prerequisites
 
 - Node.js (v14 or higher)
+- Docker and Docker Compose (for containerized deployment)
 - PostgreSQL (v12 or higher)
 - npm (Node Package Manager)
 
@@ -87,6 +94,32 @@ npm run dev
 ```
 
 The application will be available at `http://localhost:4000`
+
+### Using Docker
+
+1. Build and start the containers:
+
+```bash
+docker-compose up --build
+```
+
+2. Run migrations in the Docker container:
+
+```bash
+docker-compose exec app npx prisma migrate deploy
+```
+
+3. Stop the containers:
+
+```bash
+docker-compose down
+```
+
+#### Docker Compose Services
+
+- `app`: Node.js application
+- `db`: PostgreSQL database
+- Configured with automatic restart and volume persistence
 
 ## Database Schema
 
