@@ -1004,8 +1004,23 @@
           </button>
         </div>
       </div>
-    </div>    <script src="/config.js"></script>
+    </div>
     <script>
+      // Configuration for the frontend application
+      const config = {
+        // API base URL - falls back to localhost in development
+        apiUrl:
+          window.location.protocol === "file:"
+            ? "http://localhost:4000/api"
+            : "https://collab-doc-editor-u3w6.onrender.com",
+
+        // Socket.IO URL - falls back to localhost in development
+        socketUrl:
+          window.location.protocol === "file:"
+            ? "http://localhost:4000/api"
+            : "https://collab-doc-editor-u3w6.onrender.com",
+      };
+
       const API_BASE_URL = config.apiUrl;
       let socket = null;
 
