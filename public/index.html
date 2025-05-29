@@ -1123,12 +1123,30 @@
             throw new Error(data.message || "Authentication failed");
           }
 
-          authToken = data.token;
-          isAuthenticated = true;
-          logoutBtn.style.display = "block";
-
-          initializeSocket();
-          loadDocuments();
+          if (isRegisterMode) {
+            // Show success modal and switch to login mode
+            showModal("alertModal", {
+              title: "Success",
+              message: "User Created/Registered Successfully...",
+              onClose: () => {
+                isRegisterMode = false;
+                authNameInput.style.display = "none";
+                document.querySelector(".auth-container h2").textContent =
+                  "Welcome Back";
+                authSubmitBtn.textContent = "Sign In";
+                toggleAuthModeBtn.textContent =
+                  "Don't have an account? Register here";
+                authForm.reset();
+              },
+            });
+          } else {
+            // Handle login success
+            authToken = data.token;
+            isAuthenticated = true;
+            logoutBtn.style.display = "block";
+            initializeSocket();
+            loadDocuments();
+          }
         } catch (error) {
           showModal("alertModal", {
             title: "Error",
@@ -1712,6 +1730,13 @@
           const submitBtn = modal.querySelector("#createDocumentConfirm");
           submitBtn.onclick = () => {
             options.onSubmit();
+            closeModal(modalId);
+          };
+        }
+        if (options.onClose) {
+          const okButton = modal.querySelector(".btn-primary");
+          okButton.onclick = () => {
+            options.onClose();
             closeModal(modalId);
           };
         }
