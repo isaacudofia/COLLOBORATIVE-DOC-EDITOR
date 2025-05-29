@@ -248,6 +248,8 @@
         font-size: 16px;
         line-height: 1.6;
         resize: none;
+        height: auto;
+        overflow-y: hidden;
       }
 
       /* Modal Styles */
@@ -758,6 +760,151 @@
 
       .btn-danger:hover {
         background: #c82333;
+      }
+
+      @media screen and (max-width: 768px) {
+        header {
+          padding: 0.5rem 1rem;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        header h1 {
+          font-size: 1.5rem;
+          text-align: center;
+        }
+
+        main {
+          padding: 10px;
+          margin: 10px;
+        }
+
+        .auth-container {
+          margin: 20px 10px;
+          padding: 20px;
+        }
+
+        .document-editor-container {
+          flex-direction: column;
+          height: auto;
+        }
+
+        .editor-main {
+          order: 1;
+        }
+
+        .editor-sidebar {
+          order: 2;
+          margin-top: 20px;
+        }
+
+        #documentContent {
+          height: 300px;
+        }
+
+        .documents-header {
+          flex-direction: column;
+          gap: 15px;
+          align-items: stretch;
+          text-align: center;
+        }
+
+        .documents-header h2 {
+          font-size: 1.5rem;
+        }
+
+        #documentList {
+          grid-template-columns: 1fr;
+        }
+
+        .document-actions {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .document-actions button {
+          width: 100%;
+        }
+
+        .modal {
+          width: 90%;
+          max-width: none;
+          margin: 10px;
+          min-width: 0;
+        }
+
+        .collaboration-form {
+          flex-direction: column;
+        }
+
+        .collaboration-form input,
+        .collaboration-form select,
+        .collaboration-form button {
+          width: 100%;
+        }
+
+        .editor-actions {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .editor-actions button {
+          width: 100%;
+        }
+      }
+
+      @media screen and (max-width: 480px) {
+        header h1 {
+          font-size: 1.2rem;
+        }
+
+        .auth-container h2 {
+          font-size: 1.2rem;
+        }
+
+        .document-title {
+          font-size: 16px;
+        }
+
+        .document-meta {
+          font-size: 0.8rem;
+        }
+
+        .modal-title {
+          font-size: 1.2rem;
+        }
+
+        .save-notification {
+          width: 90%;
+          left: 5%;
+          right: 5%;
+        }
+
+        .btn {
+          padding: 8px 12px;
+          font-size: 0.9rem;
+        }
+
+        #documentList li {
+          padding: 15px;
+        }
+
+        .document-info-preview {
+          padding: 10px;
+        }
+      }
+
+      .auto-grow-input {
+        min-height: 100px;
+        max-height: 500px;
+        overflow-y: hidden;
+        resize: none;
+        transition: height 0.2s ease;
+      }
+
+      #documentContent {
+        height: auto;
+        overflow-y: hidden;
       }
     </style>
   </head>
@@ -1769,6 +1916,24 @@
       function showConfirm(message, onConfirm, title = "Confirm Action") {
         showModal("confirmModal", { title, message, onConfirm });
       }
+
+      function autoGrowInput(element) {
+        element.style.height = "auto";
+        element.style.height = element.scrollHeight + "px";
+      }
+
+      // Add auto-grow functionality to document content textarea
+      documentContentTextarea.classList.add("auto-grow-input");
+      documentContentTextarea.addEventListener("input", function () {
+        autoGrowInput(this);
+      });
+
+      // Also trigger on initial load
+      document.addEventListener("DOMContentLoaded", () => {
+        if (documentContentTextarea) {
+          autoGrowInput(documentContentTextarea);
+        }
+      });
     </script>
   </body>
 </html>
