@@ -95,6 +95,10 @@ npm run dev
 
 The application will be available at `http://localhost:4000`
 
+## Live Preview
+
+Check out the live application: [Collaborative Doc Editor](https://collab-document-editor.onrender.com/)
+
 ### Using Docker
 
 1. Build and start the containers:
@@ -214,9 +218,9 @@ _List of user's documents and shared documents_
 ![Document Editor](ui_screenshots/document_editor.png)
 _Real-time collaborative document editor with collaborator management_
 
-## License
+## Created By
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Isaac Godwin Udofia
 
 ## Contributing
 
