@@ -5,6 +5,7 @@ A real-time collaborative document editor that allows multiple users to simultan
 
 ## Features
 
+
 - 🔐 **User Authentication**
 
   - Register and login functionality
