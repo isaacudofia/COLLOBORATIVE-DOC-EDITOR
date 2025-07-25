@@ -10,6 +10,7 @@ import cors from "cors"; // Essential for frontend connections
 import initializeSocketHandlers from "./src/socket/socketHandler.js";
 import { PrismaClient, Role } from "./generated/prisma/client.js";
 
+
 dotenv.config();
 const prisma = new PrismaClient(); // Initialize Prisma client once globally
 const app = express();
